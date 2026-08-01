@@ -22,6 +22,10 @@ It's a single self-contained file, so it also works hosted anywhere (GitHub Page
   casting real shadows. Stylized low-poly characters with expressive drawn faces walk on and
   off set, and a cinematic camera dollies, sways, pushes in for close-ups on the big beats,
   and shakes when anomalies register. Wolf-Among-Us-style name cards mark first appearances.
+- **Dialogue performance** — characters nod, tilt, and gesture while their lines play, with
+  animated mouth flaps synced to speech duration; everything relaxes when the line ends.
+- **Cinematic post-processing** — depth of field racks focus to the current subject and opens
+  the aperture during close-ups, with bloom on neon and highlights and filmic gamma grading.
 - **Synthesized sound** — per-location ambient drones, timer ticks, choice clicks, anomaly
   stings, and the neighbor's violin in apartment scenes (the same phrase, the same flat note
   at the same place, the same pause — every time), all generated with WebAudio (no audio
@@ -63,7 +67,9 @@ Two files, no build step, no network dependencies:
   QTEs, hotspots, stat effects), ~115 story nodes as plain data objects, eleven procedural
   Three.js world builders, a low-poly character factory with canvas-drawn expressive faces,
   a cinematic camera system, and a WebAudio synth for ambience and UI sound
-- `three.min.js` — Three.js r149 (MIT), vendored locally so the game runs offline
+- `three.min.js` — Three.js r147 (MIT), vendored locally so the game runs offline
+- `three-post.js` — Three.js example post-processing passes (EffectComposer, UnrealBloomPass,
+  BokehPass, MIT), concatenated from the same release
 
 Adding a scene is adding an object to `STORY`.
 

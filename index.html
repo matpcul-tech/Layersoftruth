@@ -314,6 +314,7 @@
 </div>
 
 <script src="./three.min.js"></script>
+<script src="./three-post.js"></script>
 <script>
 "use strict";
 /* ============================================================
@@ -501,10 +502,19 @@ renderer.toneMappingExposure = 1.12;
 const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 300);
 const camLook = new THREE.Vector3(0, 1.3, 0);
 const _goalPos = new THREE.Vector3(), _goalLook = new THREE.Vector3();
+// post-processing: depth of field + bloom + gamma
+const composer = new THREE.EffectComposer(renderer);
+const renderPassP = new THREE.RenderPass(new THREE.Scene(), camera);
+const bokehPass = new THREE.BokehPass(renderPassP.scene, camera, {focus:4, aperture:0.0001, maxblur:0.008});
+const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(1280,720), 0.38, 0.6, 0.87);
+const gammaPass = new THREE.ShaderPass(THREE.GammaCorrectionShader);
+composer.addPass(renderPassP); composer.addPass(bokehPass);
+composer.addPass(bloomPass); composer.addPass(gammaPass);
 function resize3d(){
   const r = stage.getBoundingClientRect();
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio||1));
   renderer.setSize(Math.max(2, r.width), Math.max(2, r.height), false);
+  composer.setSize(Math.max(2, r.width), Math.max(2, r.height));
   camera.aspect = r.width/Math.max(1, r.height); camera.updateProjectionMatrix();
 }
 window.addEventListener("resize", resize3d);
@@ -577,7 +587,7 @@ const FACEMOODS = {
   stern:  {bi:4,  bo:-4, mc:0}
 };
 const HAIRLINES = {vera:"bangs", sarah:"swept", david:"high", assessor:"slick", worker:"slick"};
-function drawFace(c,cfg,mood,style){
+function drawFace(c,cfg,mood,style,open){
   const m = FACEMOODS[mood]||FACEMOODS.calm;
   c.clearRect(0,0,256,256);
   c.save();
@@ -605,11 +615,17 @@ function drawFace(c,cfg,mood,style){
   c.beginPath(); c.moveTo(72,116+m.bi); c.quadraticCurveTo(92,108+m.bo,110,113+m.bo*0.4); c.stroke();
   c.beginPath(); c.moveTo(184,116+m.bi); c.quadraticCurveTo(164,108+m.bo,146,113+m.bo*0.4); c.stroke();
   c.globalAlpha=1;
-  // nose + mouth
+  // nose + mouth (open while speaking)
   c.strokeStyle="rgba(0,0,0,.24)"; c.lineWidth=4;
   c.beginPath(); c.moveTo(128,152); c.quadraticCurveTo(133,164,128,172); c.stroke();
-  c.strokeStyle="#7A4A3C"; c.lineWidth=6;
-  c.beginPath(); c.moveTo(105,196); c.quadraticCurveTo(128,196+m.mc,151,196); c.stroke();
+  if(open){
+    c.fillStyle="#5A322A"; c.beginPath();
+    c.ellipse(128,199,13,7+Math.max(0,m.mc*0.3),0,0,7); c.fill();
+    c.fillStyle="rgba(255,255,255,.85)"; c.fillRect(119,192,18,3);
+  } else {
+    c.strokeStyle="#7A4A3C"; c.lineWidth=6;
+    c.beginPath(); c.moveTo(105,196); c.quadraticCurveTo(128,196+m.mc,151,196); c.stroke();
+  }
   if(cfg.extra){ c.strokeStyle="rgba(120,80,60,.7)"; c.lineWidth=4;
     c.beginPath(); c.moveTo(76,104); c.lineTo(93,97); c.stroke(); }
   c.restore();
@@ -625,37 +641,46 @@ function buildChar(id){
   const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.185,.42,6,14),topM);
   torso.position.y=1.02; torso.scale.set(1,1,.72); g.add(torso);
   const armL=new THREE.Mesh(new THREE.CapsuleGeometry(.055,.42,4,10),topM);
-  armL.position.set(-.26,1.02,0); armL.rotation.z=.09; g.add(armL);
-  const armR=armL.clone(); armR.position.x=.26; armR.rotation.z=-.09; g.add(armR);
-  g.add(sph(.055,skin,-.29,.76,0)); g.add(sph(.055,skin,.29,.76,0));
+  armL.geometry.translate(0,-.21,0);
+  armL.position.set(-.26,1.24,0); armL.rotation.z=.09; g.add(armL);
+  const armR=new THREE.Mesh(armL.geometry,topM);
+  armR.position.set(.26,1.24,0); armR.rotation.z=-.09; g.add(armR);
+  const handL=sph(.055,skin,0,-.44,0); armL.add(handL);
+  const handR=sph(.055,skin,0,-.44,0); armR.add(handR);
   g.add(cyl(.06,.07,.1,skin,0,1.32,0));
-  const head=sph(.165,skin,0,1.52,0); head.scale.set(.94,1.12,.9); g.add(head);
+  // head group so nods and tilts move hair + face together
+  const hg=new THREE.Group(); hg.position.set(0,1.52,0); g.add(hg);
+  const head=sph(.165,skin,0,0,0); head.scale.set(.94,1.12,.9); hg.add(head);
   if(id==="vera"){
-    const cap=sph(.18,hair,0,1.55,-.01,{tl:Math.PI*0.55}); cap.scale.set(1,1,.85); g.add(cap);
-    g.add(box(.06,.22,.14,hair,-.15,1.46,-.02)); g.add(box(.06,.22,.14,hair,.15,1.46,-.02));
+    const cap=sph(.18,hair,0,.03,-.01,{tl:Math.PI*0.55}); cap.scale.set(1,1,.85); hg.add(cap);
+    hg.add(box(.06,.22,.14,hair,-.15,-.06,-.02)); hg.add(box(.06,.22,.14,hair,.15,-.06,-.02));
   } else if(id==="sarah"){
-    const cap=sph(.18,hair,0,1.55,-.015,{tl:Math.PI*0.55}); cap.scale.set(1,1,.85); g.add(cap);
-    g.add(box(.3,.5,.09,hair,0,1.3,-.15));
-    g.add(box(.07,.4,.11,hair,-.16,1.34,-.05)); g.add(box(.07,.4,.11,hair,.16,1.34,-.05));
+    const cap=sph(.18,hair,0,.03,-.015,{tl:Math.PI*0.55}); cap.scale.set(1,1,.85); hg.add(cap);
+    hg.add(box(.3,.5,.09,hair,0,-.22,-.15));
+    hg.add(box(.07,.4,.11,hair,-.16,-.18,-.05)); hg.add(box(.07,.4,.11,hair,.16,-.18,-.05));
   } else if(id==="david"){
     const band=new THREE.Mesh(new THREE.TorusGeometry(.145,.05,10,20,Math.PI),hair);
-    band.position.set(0,1.5,-.02); band.rotation.x=Math.PI/2; band.rotation.z=Math.PI; g.add(band);
+    band.position.set(0,-.02,-.02); band.rotation.x=Math.PI/2; band.rotation.z=Math.PI; hg.add(band);
   } else if(id==="assessor"||id==="worker"){
-    const cap=sph(.178,hair,0,1.555,-.01,{tl:Math.PI*0.5}); cap.scale.set(1,.96,.85); g.add(cap);
-    g.add(sph(.075,hair,0,1.67,-.15));
+    const cap=sph(.178,hair,0,.035,-.01,{tl:Math.PI*0.5}); cap.scale.set(1,.96,.85); hg.add(cap);
+    hg.add(sph(.075,hair,0,.15,-.15));
   } else {
-    const cap=sph(.176,hair,0,1.555,-.01,{tl:Math.PI*0.48}); cap.scale.set(1,.95,.85); g.add(cap);
+    const cap=sph(.176,hair,0,.035,-.01,{tl:Math.PI*0.48}); cap.scale.set(1,.95,.85); hg.add(cap);
   }
   const fcv=document.createElement("canvas"); fcv.width=256; fcv.height=256;
   const fctx=fcv.getContext("2d");
   const ftex=new THREE.CanvasTexture(fcv);
   const fmat=new THREE.MeshBasicMaterial({map:ftex,transparent:true,alphaTest:.05});
   fmat.userData.base=new THREE.Color(0xffffff); mats.push(fmat);
-  g.add(plane(.335,.355,fmat,0,1.525,.152));
+  hg.add(plane(.335,.355,fmat,0,.005,.152));
   const rim=new THREE.PointLight(cfg.rim,.7,2.6); rim.position.set(.5,1.8,-.5); g.add(rim);
   g.traverse(o=>{ if(o.isMesh) o.castShadow=true; });
   return {group:g, mats, rim, fctx, ftex, cfg, style:HAIRLINES[id]||"short",
-    setMood(mood){ drawFace(this.fctx,this.cfg,mood,this.style); this.ftex.needsUpdate=true; },
+    headGrp:hg, armR, armL, mood:"calm", _open:false,
+    setMood(mood){ this.mood=mood; this._open=false;
+      drawFace(this.fctx,this.cfg,mood,this.style,false); this.ftex.needsUpdate=true; },
+    setMouth(open){ this._open=open;
+      drawFace(this.fctx,this.cfg,this.mood,this.style,open); this.ftex.needsUpdate=true; },
     setDim(d){ this.mats.forEach(m=>{ m.color.copy(m.userData.base).multiplyScalar(d?0.38:1); }); this.rim.intensity=d?0.15:0.7; },
     setAlpha(a){ this.mats.forEach(m=>{ m.opacity=a; }); this.rim.intensity=Math.min(.7,a*.7); }
   };
@@ -946,28 +971,28 @@ lab(){ const sc=baseWorld(0x0E181E,6,30);
 function setWorld(bg){
   bg = BUILDERS[bg] ? bg : "void";
   if (curBg === bg && world) return;
-  Object.values(castMap).forEach(rec=>{
-    if (rec.ch && rec.ch.group.parent) rec.ch.group.parent.remove(rec.ch.group);
-  });
+  // location change is a hard cut: nobody walks between sets
+  Object.keys(castMap).forEach(removeRec);
   curBg = bg;
   world = WORLDS[bg] || (WORLDS[bg] = BUILDERS[bg]());
+  renderPassP.scene = world.scene; bokehPass.scene = world.scene;
   camera.position.copy(world.cam.pos); camLook.copy(world.cam.look);
   snapCam = true;
-  Object.values(castMap).forEach(rec=>{
-    if (rec.ch){ world.scene.add(rec.ch.group); rec.snap = true; }
-  });
   const veil = $("fadeveil");
   veil.style.transition = "none"; veil.style.opacity = "1";
   void veil.offsetWidth;
   veil.style.transition = "opacity .9s ease"; veil.style.opacity = "0";
 }
 
+let lastFrameMs = 0;
 function renderLoop(nowMs){
   requestAnimationFrame(renderLoop);
   if (!world) return;
+  const dt = lastFrameMs ? Math.min(0.1, (nowMs-lastFrameMs)/1000) : 0.016;
+  lastFrameMs = nowMs;
   const t = RM ? 0 : nowMs/1000;
   if (world.update) world.update(t);
-  updateCast3d(t);
+  updateCast3d(t, dt);
   const cu = closeupId && castMap[closeupId] && castMap[closeupId].ch;
   if (cu){
     const p = castMap[closeupId].ch.group.position;
@@ -976,10 +1001,14 @@ function renderLoop(nowMs){
   } else { _goalPos.copy(world.cam.pos); _goalLook.copy(world.cam.look); }
   if (!RM){ _goalPos.x += Math.sin(t*.3)*.06; _goalPos.y += Math.sin(t*.23)*.03; }
   if (nowMs < glitchUntil){ _goalPos.x += (Math.random()-.5)*.12; _goalPos.y += (Math.random()-.5)*.08; }
-  const k = snapCam ? 1 : 0.045;
+  const k = snapCam ? 1 : 1 - Math.pow(0.955, dt*60);
   camera.position.lerp(_goalPos, k); camLook.lerp(_goalLook, k); snapCam = false;
   camera.lookAt(camLook);
-  renderer.render(world.scene, camera);
+  // rack focus to the current subject; open the aperture during close-ups
+  bokehPass.uniforms["focus"].value = camera.position.distanceTo(camLook);
+  const apGoal = cu ? 0.00032 : 0.00009;
+  bokehPass.uniforms["aperture"].value += (apGoal - bokehPass.uniforms["aperture"].value) * 0.06;
+  composer.render();
 }
 
 // ============================================================
@@ -1112,19 +1141,45 @@ function renderCast(nodeId){
     }
   });
 }
-function updateCast3d(t){
+function setTalking(spk, text){
+  const s = (spk||"").toLowerCase();
+  const now = performance.now();
+  Object.values(castMap).forEach(rec=>{
+    const keys = NAME_KEYS[rec.id] || [];
+    const match = s && keys.some(k=>s.includes(k));
+    rec.talkUntil = match ? now + Math.min(7500, 1400 + (text ? text.length : 0) * 22) : 0;
+  });
+}
+function updateCast3d(t, dt){
+  const now = performance.now();
+  const fMove = 1 - Math.pow(0.94, (dt||0.016)*60);
+  const fFade = 1 - Math.pow(0.93, (dt||0.016)*60);
   Object.keys(castMap).forEach(id=>{
     const rec = castMap[id], ch = rec.ch, g = ch.group;
     const a = (world && world.anchors[rec.pos]) || V3(0,0,.6);
     if (rec.snap){ g.position.set(a.x, 0, a.z); rec.alpha = 1; rec.snap = false; }
     const tx = rec.exiting ? a.x + (rec.pos==="L" ? -2.2 : 2.2) : a.x;
-    g.position.x += (tx - g.position.x) * 0.06;
-    g.position.z += (a.z - g.position.z) * 0.06;
-    rec.alpha += ((rec.exiting ? 0 : 1) - rec.alpha) * 0.07;
+    g.position.x += (tx - g.position.x) * fMove;
+    g.position.z += (a.z - g.position.z) * fMove;
+    rec.alpha += ((rec.exiting ? 0 : 1) - rec.alpha) * fFade;
     ch.setAlpha(rec.alpha);
     if (rec.exiting && rec.alpha < 0.03){ removeRec(id); return; }
     g.rotation.y = Math.atan2(camera.position.x - g.position.x, camera.position.z - g.position.z);
-    g.position.y = Math.sin(t*1.1 + id.charCodeAt(0)) * 0.012;
+    const ph = id.charCodeAt(0);
+    g.position.y = Math.sin(t*1.1 + ph) * 0.012;
+    // dialogue performance: nods, tilts, a beat gesture, mouth flap
+    const talking = rec.talkUntil && now < rec.talkUntil && !rec.exiting;
+    if (talking){
+      ch.headGrp.rotation.x += (Math.sin(t*2.4+ph)*0.055 - ch.headGrp.rotation.x) * 0.12;
+      ch.headGrp.rotation.z += (Math.sin(t*1.5+ph)*0.035 - ch.headGrp.rotation.z) * 0.12;
+      ch.armR.rotation.x += ((-.3 - .18*Math.sin(t*2.1+ph)) - ch.armR.rotation.x) * 0.07;
+      const open = Math.floor(now/135) % 3 !== 0 && Math.sin(now/70+ph) > -0.6;
+      if (open !== ch._open) ch.setMouth(open);
+    } else {
+      ch.headGrp.rotation.x *= 0.9; ch.headGrp.rotation.z *= 0.9;
+      ch.armR.rotation.x *= 0.92;
+      if (ch._open) ch.setMouth(false);
+    }
   });
 }
 // cinematic close-ups on the big beats
@@ -1200,6 +1255,7 @@ function renderPage(){
                          spk.toLowerCase().includes("engine")||spk.toLowerCase().includes("system") ? "system" : "narr") : "narr";
   highlightCast(spk);
   const chunk = n.text[page];
+  setTalking(spk, chunk.replace(/<[^>]+>/g,""));
   textEl.innerHTML = chunk.split("\n").map(p=>"<p>"+p+"</p>").join("");
   choicesEl.innerHTML = "";
   timerWrap.style.display = "none";
