@@ -218,13 +218,23 @@
   #bgc{position:absolute;inset:0;width:100%;height:100%;z-index:0}
   #cast{position:absolute;inset:0;z-index:4;pointer-events:none}
   .actor{position:absolute;bottom:23%;width:clamp(150px,27vmin,250px);
-    transition:opacity .5s, filter .5s;animation:actorIn .7s ease both}
+    transition:opacity .5s, filter .5s, width .8s cubic-bezier(.2,.7,.3,1), bottom .8s cubic-bezier(.2,.7,.3,1),
+      left .8s cubic-bezier(.2,.7,.3,1), right .8s cubic-bezier(.2,.7,.3,1), transform .65s ease}
   .actor svg{width:100%;height:auto;display:block;filter:drop-shadow(0 14px 26px rgba(0,0,0,.65))}
   .actor.posL{left:9%}.actor.posR{right:9%}.actor.posC{left:50%;margin-left:calc(clamp(150px,27vmin,250px) / -2)}
   .actor.dim{opacity:.42;filter:brightness(.5) saturate(.6)}
   .actor .breather{animation:breathe 5.4s ease-in-out infinite}
   @keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
-  @keyframes actorIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .actor.enterL{animation:enterL .85s cubic-bezier(.2,.7,.3,1) both}
+  .actor.enterR{animation:enterR .85s cubic-bezier(.2,.7,.3,1) both}
+  .actor.enterC{animation:enterC .85s cubic-bezier(.2,.7,.3,1) both}
+  @keyframes enterL{from{opacity:0;transform:translateX(-60px)}to{opacity:1;transform:none}}
+  @keyframes enterR{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:none}}
+  @keyframes enterC{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+  .actor.exit{opacity:0 !important;transform:translateX(var(--exd,40px)) translateY(12px)}
+  .actor.closeup{width:clamp(260px,46vmin,430px);bottom:4%;z-index:6}
+  .actor.closeup.posL{left:6%}.actor.closeup.posR{right:6%}
+  .actor.closeup svg{filter:drop-shadow(0 22px 40px rgba(0,0,0,.8))}
   #lowerShade{position:absolute;left:0;right:0;bottom:0;height:48%;z-index:5;pointer-events:none;
     background:linear-gradient(180deg, transparent, rgba(5,7,11,.5) 32%, rgba(5,7,11,.93))}
   #namecard{position:absolute;left:52px;bottom:27%;z-index:25;opacity:0;transition:opacity .6s;pointer-events:none}
@@ -253,6 +263,8 @@
   @media (max-width:640px){
     .actor{width:clamp(120px,34vmin,180px);bottom:30%}
     .actor.posL{left:3%}.actor.posR{right:3%}
+    .actor.closeup{width:clamp(190px,58vmin,290px);bottom:16%}
+    .actor.closeup.posL{left:2%}.actor.closeup.posR{right:2%}
     #namecard{left:20px;bottom:33%}
   }
 
@@ -409,7 +421,40 @@ const AU = {
     if (bg==="dream") nodes.push(mk(root*2.02));
     if (bg==="tunnels") nodes.push(mk(50,"sawtooth"));
     this.ambNodes = nodes; this.ambGain = g;
+    if (bg==="apartment") this.startViolin(); else this.stopViolin();
   },
+  // the neighbor's violin: the same phrase, the same mistake at the same
+  // note, the same pause before trying again — every single time
+  violinTimers:[], violinOn:false,
+  vnote(f, dur, flat){
+    if (!this.ctx || !this.on || !this.violinOn) return;
+    const c = this.ctx, t = c.currentTime;
+    const o = c.createOscillator(); o.type = "sawtooth";
+    o.frequency.value = flat ? f*0.952 : f;
+    const vib = c.createOscillator(); vib.frequency.value = 5.3;
+    const vg = c.createGain(); vg.gain.value = 3.4; vib.connect(vg); vg.connect(o.frequency);
+    const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1500; lp.Q.value = 1.1;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.026, t+0.1);
+    g.gain.setValueAtTime(0.026, t+Math.max(0.12, dur-0.2));
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+    o.connect(lp); lp.connect(g); g.connect(this.master);
+    o.start(t); vib.start(t); o.stop(t+dur+0.05); vib.stop(t+dur+0.05);
+  },
+  violinLoop(){
+    if (!this.violinOn) return;
+    const PH = [[440,.55],[523.25,.55],[659.25,.95],[587.33,.55],[523.25,.55],[493.88,.95],
+                [523.25,.6,1],[0,.85],[493.88,.55],[523.25,.55],[440,1.5]];
+    let at = 700;
+    PH.forEach(n=>{
+      if (n[0] > 0) this.violinTimers.push(setTimeout(()=>this.vnote(n[0], n[1], n[2]), at));
+      at += n[1]*1000 + 70;
+    });
+    this.violinTimers.push(setTimeout(()=>this.violinLoop(), at + 5600));
+  },
+  startViolin(){ if (this.violinOn) return; this.violinOn = true; this.violinLoop(); },
+  stopViolin(){ this.violinOn = false; this.violinTimers.forEach(clearTimeout); this.violinTimers = []; },
   blip(f0, f1, dur, type, vol){
     if (!this.ctx || !this.on) return;
     const c = this.ctx, t = c.currentTime;
@@ -432,7 +477,7 @@ const AU = {
   toggle(){
     this.on = !this.on;
     $("audioBtn").textContent = "SOUND: " + (this.on ? "ON" : "OFF");
-    if (!this.on){ this.stopAmbient(); this.curAmb = null; }
+    if (!this.on){ this.stopAmbient(); this.stopViolin(); this.curAmb = null; }
     else { this.ensure(); this.ambient(this.pending || "void"); }
   }
 };
@@ -442,7 +487,7 @@ const AU = {
 // ============================================================
 const bgcv = $("bgc"), bctx = bgcv.getContext("2d");
 if (!bctx.roundRect){ bctx.roundRect = function(x,y,w,h){ this.rect(x,y,w,h); }; }
-let curBg = "void", fadeT = 0, glitchUntil = 0;
+let curBg = "void", fadeT = 0, glitchUntil = 0, camZ = 1, camTarget = 1;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 function R(n){ const x = Math.sin(n*127.1+311.7)*43758.5453; return x - Math.floor(x); }
 function dpr(){ return Math.min(2, window.devicePixelRatio||1); }
@@ -757,7 +802,13 @@ lab(c,w,h,t){
 function paintLoop(now){
   const d = dpr(), w = bgcv.width/d, h = bgcv.height/d;
   const t = RM ? 0 : now/1000;
+  camZ += (camTarget - camZ) * 0.035;
+  bctx.save();
+  if (camZ > 1.001){
+    bctx.translate(w/2, h*0.42); bctx.scale(camZ, camZ); bctx.translate(-w/2, -h*0.42);
+  }
   (PAINTERS[curBg]||PAINTERS.void)(bctx,w,h,t);
+  bctx.restore();
   if (now < glitchUntil && !RM){
     bctx.save(); bctx.setTransform(1,0,0,1,0,0);
     for (let i=0;i<5;i++){
@@ -891,17 +942,65 @@ function showNamecard(meta){
   nc.classList.add("show");
   clearTimeout(nc._t); nc._t = setTimeout(()=>nc.classList.remove("show"), 3400);
 }
+let castMap = {};
 function renderCast(nodeId){
   const list = CAST[nodeId] || [];
-  const cast = $("cast"); cast.innerHTML = "";
-  list.forEach(e=>{
-    const d = document.createElement("div");
-    d.className = "actor pos"+e[1]; d.dataset.actor = e[0];
-    d.innerHTML = '<div class="breather">'+actorSVG(e[0], e[2])+'</div>';
-    cast.appendChild(d);
-    if (NAMECARDS[e[0]] && !S.flags["met_"+e[0]]){
-      S.flags["met_"+e[0]] = true; showNamecard(NAMECARDS[e[0]]);
+  const cast = $("cast");
+  const want = {};
+  list.forEach(e=>{ want[e[0]] = true; });
+  // exits: actors not in the new scene walk off
+  Object.keys(castMap).forEach(id=>{
+    if (!want[id]){
+      const rec = castMap[id]; delete castMap[id];
+      rec.el.style.setProperty("--exd", rec.pos === "L" ? "-46px" : "46px");
+      rec.el.classList.remove("enterL","enterR","enterC","closeup");
+      rec.el.classList.add("exit");
+      setTimeout(()=>rec.el.remove(), 750);
     }
+  });
+  // entries + updates: persistent actors stay put, change mood/position smoothly
+  list.forEach(([id,pos,mood])=>{
+    const rec = castMap[id];
+    if (rec){
+      if (rec.pos !== pos){
+        rec.el.classList.remove("pos"+rec.pos); rec.el.classList.add("pos"+pos); rec.pos = pos;
+      }
+      if (rec.mood !== mood){
+        rec.el.querySelector(".breather").innerHTML = actorSVG(id, mood); rec.mood = mood;
+      }
+    } else {
+      const d = document.createElement("div");
+      d.className = "actor pos"+pos+" "+(pos==="L" ? "enterL" : pos==="C" ? "enterC" : "enterR");
+      d.dataset.actor = id;
+      d.innerHTML = '<div class="breather">'+actorSVG(id, mood)+'</div>';
+      cast.appendChild(d);
+      castMap[id] = {el:d, pos, mood, id};
+      if (NAMECARDS[id] && !S.flags["met_"+id]){
+        S.flags["met_"+id] = true; showNamecard(NAMECARDS[id]);
+      }
+    }
+  });
+}
+// cinematic close-ups on the big beats
+const CLOSEUPS = {
+  e1s8e:"assessor",    // "resistance is one of our most valuable metrics"
+  e2s2b:"sarah",       // "are you happy here?"
+  e2s7:"vera",         // "I don't know" — her first honest answer
+  e3s9:"vera",         // the transfer notice
+  e4s3b:"sarah",       // "what if the watchers are the point?"
+  e4run_r2:"stranger", // whether freedom requires the absence of observation
+  e4s8:"vera",         // "this is the last iteration"
+  e5s3c:"sarah",       // "the wanting is real"
+  e5s6:"vera",         // "I requested it"
+  e5final:"vera",      // the choice
+  end_authentic1:"vera",
+  predEnd:"vera"
+};
+function applyCloseup(nodeId){
+  const target = CLOSEUPS[nodeId] || null;
+  camTarget = target ? 1.09 : 1;
+  Object.values(castMap).forEach(rec=>{
+    rec.el.classList.toggle("closeup", rec.id === target);
   });
 }
 function highlightCast(spk){
@@ -913,6 +1012,7 @@ function highlightCast(spk){
     if (s && keys.some(k=>s.includes(k))) anyMatch = true;
   });
   actors.forEach(a=>{
+    if (a.classList.contains("closeup") || a.classList.contains("exit")){ a.classList.remove("dim"); return; }
     const keys = NAME_KEYS[a.dataset.actor] || [];
     const match = s && keys.some(k=>s.includes(k));
     a.classList.toggle("dim", anyMatch && !match);
@@ -940,6 +1040,7 @@ function go(id){
   if (curBg !== (n.bg || "void")){ curBg = n.bg || "void"; fadeT = performance.now(); }
   AU.ambient(curBg);
   renderCast(id);
+  applyCloseup(id);
   $("hotzone").innerHTML = "";
   if (n.enter) n.enter(S);
   if (n.anom) anomaly(n.anom);
@@ -1098,7 +1199,8 @@ function runSeq(n){
 function clearScene(){
   choicesEl.innerHTML = ""; textEl.innerHTML = ""; speakerEl.textContent = "";
   moreEl.style.display = "none"; clearTimer();
-  $("cast").innerHTML = ""; $("hotzone").innerHTML = "";
+  $("cast").innerHTML = ""; castMap = {}; camTarget = 1;
+  $("hotzone").innerHTML = "";
   $("sqte").style.display = "none";
 }
 function renderCard(n){

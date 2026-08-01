@@ -18,8 +18,12 @@ It's a single self-contained file, so it also works hosted anywhere (GitHub Page
   street with its looping identical pedestrians, the diner with metronome rain and a flickering
   neon sign, the maintenance tunnels, the stairwell) rendered live on canvas, with graphic-novel
   style character portraits, expressions, and Wolf-Among-Us-style name cards on first appearance.
-- **Synthesized sound** — per-location ambient drones, timer ticks, choice clicks, and anomaly
-  stings, all generated with WebAudio (no audio files). Toggle with the SOUND button.
+- **Synthesized sound** — per-location ambient drones, timer ticks, choice clicks, anomaly
+  stings, and the neighbor's violin in apartment scenes (the same phrase, the same flat note
+  at the same place, the same pause — every time), all generated with WebAudio (no audio
+  files). Toggle with the SOUND button.
+- **Cinematic staging** — characters walk on and off between scenes and persist across cuts,
+  and the camera pushes in for close-ups on the story's biggest dialogue beats.
 - **Timed dialogue choices** — the bar drains, and if you don't speak, Marcus stays silent.
   **Silence is always an option**, it is tracked, and it matters.
 - **"Vera will remember that."** — characters (and the Purpose Engine) log your choices.
