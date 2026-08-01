@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Distopia: Layers of Truth — A Narrative Adventure</title>
+<style>
+  /* ============ PURPOSE ENGINE MONITORING OVERLAY ============
+     Single committed theme: dark cinematic (letterboxed game screen).
+     Ground #0A0D14 · panel #121826 · paper #E9E4D8
+     system-cyan #6FBFCF · human-amber #D9A441 · glitch-red #C0503C */
+  :root{
+    --ground:#0A0D14; --panel:#121826; --panel2:#0E1420;
+    --paper:#E9E4D8; --dim:#8B8B93; --faint:#4A4F5E;
+    --cyan:#6FBFCF; --amber:#D9A441; --red:#C0503C; --green:#7FA36B;
+    --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Times New Roman', serif;
+    --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, Menlo, monospace;
+    --sans: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    background:var(--ground); color:var(--paper);
+    font-family:var(--serif); overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{position:relative;height:100%;display:flex;flex-direction:column}
+
+  /* letterbox bars */
+  .bar{flex:0 0 34px;background:#000;z-index:30;position:relative}
+
+  /* stage */
+  #stage{
+    position:relative;flex:1;display:flex;flex-direction:column;
+    justify-content:flex-end;overflow:hidden;
+    transition:background 1.2s ease;
+  }
+  /* environment washes — radial light per location */
+  #stage.bg-apartment {background:radial-gradient(120% 90% at 78% 8%, #2A3348 0%, #141B2B 45%, #0A0D14 100%)}
+  #stage.bg-street    {background:radial-gradient(130% 100% at 50% 0%, #2E3040 0%, #171A26 50%, #0A0D14 100%)}
+  #stage.bg-office    {background:radial-gradient(120% 90% at 50% 12%, #26313A 0%, #131A22 52%, #0A0D14 100%)}
+  #stage.bg-cafe      {background:radial-gradient(120% 90% at 30% 15%, #3A3226 0%, #1C1712 52%, #0A0D14 100%)}
+  #stage.bg-diner     {background:radial-gradient(120% 90% at 68% 10%, #3B3122 0%, #1D1610 52%, #0A0D14 100%)}
+  #stage.bg-dream     {background:radial-gradient(90% 90% at 50% 50%, #232A44 0%, #10121F 55%, #06070C 100%)}
+  #stage.bg-tunnels   {background:radial-gradient(110% 80% at 50% 100%, #33291B 0%, #171208 55%, #0A0D14 100%)}
+  #stage.bg-stairwell {background:radial-gradient(80% 70% at 50% 20%, #262B24 0%, #121510 55%, #07080A 100%)}
+  #stage.bg-conf      {background:radial-gradient(120% 90% at 50% 0%, #1E2B33 0%, #101A20 55%, #0A0D14 100%)}
+  #stage.bg-lab       {background:radial-gradient(120% 90% at 50% 10%, #1B3038 0%, #0F1B21 55%, #0A0D14 100%)}
+  #stage.bg-void      {background:radial-gradient(80% 80% at 50% 50%, #14161E 0%, #08090D 70%, #000 100%)}
+
+  /* scanlines + vignette */
+  #stage::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+    background:repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0 1px, transparent 1px 3px);
+  }
+  #stage::after{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+    box-shadow:inset 0 0 180px 60px rgba(0,0,0,0.75);
+  }
+
+  /* viewfinder corner brackets */
+  .corner{position:absolute;width:26px;height:26px;z-index:2;opacity:.35;pointer-events:none}
+  .corner b{position:absolute;background:var(--cyan)}
+  .corner .h{width:100%;height:1px}.corner .v{width:1px;height:100%}
+  .c-tl{top:14px;left:16px}.c-tr{top:14px;right:16px}.c-bl{bottom:14px;left:16px}.c-br{bottom:14px;right:16px}
+  .c-tr .h,.c-br .h{right:0}.c-bl .v,.c-br .v{bottom:0}
+  .c-tr .v{right:0}.c-br .v{right:0}.c-bl .h{bottom:0}.c-br .h{bottom:0}
+
+  /* HUD */
+  #hud{
+    position:absolute;top:12px;left:0;right:0;z-index:20;
+    display:flex;justify-content:space-between;align-items:flex-start;
+    padding:0 52px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+    color:var(--faint);text-transform:uppercase;pointer-events:none;
+  }
+  #hud .rec{display:flex;align-items:center;gap:7px;color:var(--dim)}
+  #hud .dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:blink 1.6s infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+  #anomCount{color:var(--red);opacity:0;transition:opacity .5s}
+  #anomCount.on{opacity:.9}
+
+  /* narrative area */
+  #scene{
+    position:relative;z-index:10;width:min(66ch,92%);margin:0 auto;
+    padding:0 0 22px;
+  }
+  #speaker{
+    font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    margin-bottom:10px;color:var(--amber);min-height:15px;
+  }
+  #speaker.vera{color:var(--cyan)} #speaker.sarah{color:var(--green)}
+  #speaker.system{color:var(--red)} #speaker.narr{color:var(--dim)}
+  #text{
+    font-size:clamp(16px,2.1vmin,19px);line-height:1.72;color:var(--paper);
+    min-height:5.2em;text-shadow:0 2px 12px rgba(0,0,0,.8);
+  }
+  #text p{animation:rise .45s ease both}
+  #text p + p{margin-top:.8em}
+  #text em{color:#F3EDDE}
+  #text .mark{font-family:var(--mono);font-size:.85em;color:var(--cyan);letter-spacing:.06em}
+  @keyframes rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+  #more{
+    margin-top:14px;font-family:var(--mono);font-size:11px;letter-spacing:.2em;
+    color:var(--dim);cursor:pointer;user-select:none;animation:pulse 2.2s infinite;
+    text-transform:uppercase;
+  }
+  @keyframes pulse{0%,100%{opacity:.85}50%{opacity:.3}}
+
+  /* choices */
+  #choices{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+  .choice{
+    font-family:var(--sans);font-size:15px;text-align:left;color:var(--paper);
+    background:linear-gradient(90deg, rgba(18,24,38,.92), rgba(18,24,38,.55));
+    border:1px solid #2A3247;border-left:3px solid var(--faint);
+    padding:11px 16px;cursor:pointer;transition:all .15s ease;
+    animation:rise .35s ease both;
+  }
+  .choice:nth-child(2){animation-delay:.06s}.choice:nth-child(3){animation-delay:.12s}
+  .choice:nth-child(4){animation-delay:.18s}.choice:nth-child(5){animation-delay:.24s}
+  .choice:hover,.choice:focus-visible{
+    border-left-color:var(--amber);background:linear-gradient(90deg,#1B2438,#141B2C);
+    color:#FFF6E3;outline:none;transform:translateX(4px);
+  }
+  .choice.silent{color:var(--dim);font-style:italic}
+  .choice.silent:hover,.choice.silent:focus-visible{color:#BDBDC4;border-left-color:var(--cyan)}
+  .choice kbd{
+    font-family:var(--mono);font-size:10px;color:var(--faint);margin-right:10px;
+    border:1px solid var(--faint);padding:1px 5px;border-radius:2px;
+  }
+
+  /* timer */
+  #timerWrap{height:3px;background:#1A2030;margin-top:12px;display:none}
+  #timerBar{height:100%;width:100%;background:linear-gradient(90deg,var(--amber),var(--red));transition:width .1s linear}
+
+  /* toasts — "X will remember that." */
+  #toasts{position:absolute;top:52px;left:52px;z-index:40;display:flex;flex-direction:column;gap:8px;max-width:340px}
+  .toast{
+    font-family:var(--mono);font-size:12px;letter-spacing:.08em;
+    background:rgba(10,13,20,.92);border-left:3px solid var(--amber);
+    padding:10px 14px;color:var(--paper);animation:toastIn .4s ease both;
+    box-shadow:0 4px 24px rgba(0,0,0,.6);
+  }
+  .toast.vera{border-left-color:var(--cyan)} .toast.sarah{border-left-color:var(--green)}
+  .toast.system{border-left-color:var(--red);color:#E8B9AE}
+  .toast.anom{border-left-color:var(--red);color:var(--red)}
+  .toast.fade{animation:toastOut .6s ease both}
+  @keyframes toastIn{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+  @keyframes toastOut{to{opacity:0;transform:translateX(-14px)}}
+
+  /* glitch */
+  .glitching #text{animation:glitch .5s steps(2) 3}
+  @keyframes glitch{
+    0%{transform:translateX(0)}
+    25%{transform:translateX(-3px);text-shadow:3px 0 var(--red),-3px 0 var(--cyan)}
+    50%{transform:translateX(3px);text-shadow:-3px 0 var(--red),3px 0 var(--cyan)}
+    75%{transform:translateX(-1px);text-shadow:2px 0 var(--cyan)}
+    100%{transform:none}
+  }
+
+  /* title / chapter cards */
+  .card{
+    position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;
+    background:radial-gradient(80% 80% at 50% 45%, #10141F 0%, #060810 75%, #000 100%);
+    padding:24px;
+  }
+  .card .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.5em;color:var(--cyan);text-transform:uppercase;margin-bottom:22px}
+  .card h1{
+    font-family:var(--serif);font-weight:400;font-size:clamp(30px,6vmin,54px);
+    letter-spacing:.04em;color:var(--paper);text-wrap:balance;max-width:16ch;
+  }
+  .card h1 .thin{display:block;font-size:.42em;letter-spacing:.34em;text-transform:uppercase;color:var(--dim);margin-top:14px}
+  .card .sub{font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.18em;margin-top:26px;text-transform:uppercase}
+  .card .menu{display:flex;flex-direction:column;gap:10px;margin-top:38px;width:min(320px,84%)}
+  .mbtn{
+    font-family:var(--mono);font-size:13px;letter-spacing:.24em;text-transform:uppercase;
+    background:none;border:1px solid #2A3247;color:var(--paper);padding:13px 18px;
+    cursor:pointer;transition:all .15s;
+  }
+  .mbtn:hover,.mbtn:focus-visible{border-color:var(--amber);color:var(--amber);outline:none}
+  .mbtn[disabled]{opacity:.3;cursor:default}
+  .mbtn[disabled]:hover{border-color:#2A3247;color:var(--paper)}
+  .card .credit{position:absolute;bottom:56px;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.14em}
+  .card .credit a{color:var(--dim)}
+
+  /* episode stats screen */
+  .stats{
+    position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;background:radial-gradient(80% 80% at 50% 40%, #0E1620 0%, #060A10 80%, #000 100%);
+    padding:28px;overflow-y:auto;
+  }
+  .stats .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.4em;color:var(--red);text-transform:uppercase}
+  .stats h2{font-family:var(--serif);font-weight:400;font-size:clamp(22px,4vmin,34px);margin:14px 0 6px;text-wrap:balance;text-align:center}
+  .stats .note{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;margin-bottom:28px;text-transform:uppercase}
+  .statrows{width:min(560px,94%);display:flex;flex-direction:column;gap:16px}
+  .srow{font-family:var(--sans)}
+  .srow .lbl{font-size:14px;color:var(--paper);margin-bottom:6px}
+  .srow .track{height:4px;background:#1A2233;position:relative}
+  .srow .fill{position:absolute;left:0;top:0;bottom:0;background:var(--cyan);width:0;transition:width 1.1s cubic-bezier(.2,.7,.2,1)}
+  .srow .pct{font-family:var(--mono);font-size:11px;color:var(--cyan);margin-top:5px;letter-spacing:.1em}
+  .stats .mbtn{margin-top:36px}
+
+  /* QTE */
+  #qte{margin-top:18px;display:none;text-align:center}
+  #qte .prompt{font-family:var(--mono);font-size:13px;letter-spacing:.24em;color:var(--amber);text-transform:uppercase;animation:pulse 0.7s infinite}
+  #qteTrack{height:10px;background:#1A2233;margin-top:12px;border:1px solid #2A3247}
+  #qteFill{height:100%;width:0;background:var(--amber);transition:width .08s}
+
+  /* prediction readout */
+  .predbox{
+    font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--cyan);
+    border:1px solid #21455052;background:rgba(15,27,33,.6);padding:10px 14px;margin-top:14px;
+  }
+  .predbox .acc{color:var(--amber)}
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+  }
+  @media (max-width:640px){
+    #hud{padding:0 20px}
+    #toasts{left:16px;max-width:270px}
+    .bar{flex-basis:20px}
+    .corner{display:none}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar"></div>
+  <div id="stage" class="bg-void">
+    <div class="corner c-tl"><b class="h"></b><b class="v"></b></div>
+    <div class="corner c-tr"><b class="h"></b><b class="v"></b></div>
+    <div class="corner c-bl"><b class="h"></b><b class="v"></b></div>
+    <div class="corner c-br"><b class="h"></b><b class="v"></b></div>
+    <div id="hud">
+      <span id="hudEp"></span>
+      <span class="rec"><span id="anomCount"></span>&nbsp;&nbsp;<span class="dot"></span> REC · ITERATION 848</span>
+    </div>
+    <div id="toasts"></div>
+    <div id="scene">
+      <div id="speaker"></div>
+      <div id="text"></div>
+      <div id="qte"><div class="prompt">TURN THE VALVE — PRESS ANY KEY / TAP RAPIDLY</div><div id="qteTrack"><div id="qteFill"></div></div></div>
+      <div id="more">Continue ▸</div>
+      <div id="timerWrap"><div id="timerBar"></div></div>
+      <div id="choices"></div>
+    </div>
+  </div>
+  <div class="bar"></div>
+  <div id="overlay"></div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   THE DISTOPIA: LAYERS OF TRUTH — a Telltale-style adventure
+   Based on the novel by Matthew Culwell.
+   ============================================================ */
+
+// ---------- state ----------
+const DEFAULT_STATE = () => ({
+  anomalies: 0, sarah: 0, vera: 0,
+  defiance: 0, compliance: 0, integrity: 0, silence: 0,
+  flags: {}, log: [], unlocked: [1], predAcc: 62, predPicks: []
+});
+let S = DEFAULT_STATE();
+let cur = null, page = 0, timerId = null, qteId = null;
+
+const $ = id => document.getElementById(id);
+const stage = $("stage"), textEl = $("text"), speakerEl = $("speaker"),
+      choicesEl = $("choices"), moreEl = $("more"), overlay = $("overlay"),
+      timerWrap = $("timerWrap"), timerBar = $("timerBar");
+
+// ---------- helpers ----------
+function fx(o){ // stat effects
+  for (const k in o){
+    if (k === "flag") S.flags[o.flag] = true;
+    else S[k] = (S[k]||0) + o[k];
+  }
+}
+function toast(msg, cls){
+  const t = document.createElement("div");
+  t.className = "toast " + (cls||"");
+  t.textContent = msg;
+  $("toasts").appendChild(t);
+  setTimeout(()=>{ t.classList.add("fade"); setTimeout(()=>t.remove(), 650); }, 3400);
+}
+function remember(who){
+  const names = {vera:"Vera will remember that.", sarah:"Sarah will remember that.",
+                 system:"The Purpose Engine has logged your response. It logs everything.",
+                 david:"David will not remember that."};
+  toast(names[who] || who, who);
+}
+function anomaly(label){
+  S.anomalies++;
+  const c = $("anomCount");
+  c.textContent = "ANOMALY №" + S.anomalies + (label ? " · " + label : "");
+  c.classList.add("on");
+  toast("+ ANOMALY LOGGED №" + S.anomalies + (label ? " — " + label : ""), "anom");
+  setTimeout(()=>c.classList.remove("on"), 4000);
+}
+function logChoice(ep, label){ S.log.push({ep, label}); }
+// deterministic pseudo "cohort" percentage (the 47 subjects)
+function cohortPct(str){
+  let h = 0; for (let i=0;i<str.length;i++){ h = (h*31 + str.charCodeAt(i)) >>> 0; }
+  return 29 + (h % 58);
+}
+function save(){
+  if (cur === "title") return; // never clobber a real save with the title screen
+  try{ localStorage.setItem("lot_save", JSON.stringify({cur, S})); }catch(e){}
+}
+function loadSave(){
+  try{ return JSON.parse(localStorage.getItem("lot_save")); }catch(e){ return null; }
+}
+
+// ---------- renderer ----------
+function go(id){
+  clearTimer();
+  const n = STORY[id];
+  if (!n){ console.error("missing node", id); return; }
+  cur = id; page = 0;
+  if (n.card)   { renderCard(n); save(); return; }
+  if (n.stats)  { renderStats(n); save(); return; }
+  if (n.ending) { renderEnding(n); save(); return; }
+  overlay.innerHTML = "";
+  stage.className = "bg-" + (n.bg || "void");
+  $("hudEp").textContent = n.ep || "";
+  if (n.enter) n.enter(S);
+  if (n.anom) anomaly(n.anom);
+  if (n.glitch){ stage.classList.add("glitching"); setTimeout(()=>stage.classList.remove("glitching"), 1600); }
+  renderPage();
+  save();
+}
+function renderPage(){
+  const n = STORY[cur];
+  const spk = (typeof n.speaker === "function") ? n.speaker(S, page) : (Array.isArray(n.speaker) ? n.speaker[page] : n.speaker);
+  speakerEl.textContent = spk ? spk.toUpperCase() : "";
+  speakerEl.className = spk ? (spk.toLowerCase().includes("vera") ? "vera" :
+                         spk.toLowerCase().includes("sarah") ? "sarah" :
+                         spk.toLowerCase().includes("engine")||spk.toLowerCase().includes("system") ? "system" : "narr") : "narr";
+  const chunk = n.text[page];
+  textEl.innerHTML = chunk.split("\n").map(p=>"<p>"+p+"</p>").join("");
+  choicesEl.innerHTML = "";
+  timerWrap.style.display = "none";
+  $("qte").style.display = "none";
+  const last = page >= n.text.length - 1;
+  if (!last){ moreEl.style.display = "block"; return; }
+  moreEl.style.display = "none";
+  if (n.qte){ runQTE(n); return; }
+  if (n.choices){ renderChoices(n); }
+  else if (n.next){ moreEl.style.display = "block"; }
+}
+function advance(){
+  const n = STORY[cur];
+  if (!n || n.card || n.stats || n.ending) return;
+  if (page < n.text.length - 1){ page++; renderPage(); }
+  else if (!n.choices && !n.qte && n.next){ go(n.next); }
+}
+function renderChoices(n){
+  const opts = (typeof n.choices === "function") ? n.choices(S) : n.choices;
+  opts.forEach((o, i)=>{
+    const b = document.createElement("button");
+    b.className = "choice" + (o.silent ? " silent" : "");
+    b.innerHTML = "<kbd>" + (i+1) + "</kbd>" + o.t;
+    b.onclick = ()=>pick(o, n);
+    choicesEl.appendChild(b);
+  });
+  if (n.timer){
+    timerWrap.style.display = "block";
+    const total = n.timer * 1000, t0 = performance.now();
+    timerBar.style.width = "100%";
+    timerId = setInterval(()=>{
+      const left = Math.max(0, 1 - (performance.now()-t0)/total);
+      timerBar.style.width = (left*100) + "%";
+      if (left <= 0){
+        clearTimer();
+        const silent = opts.find(o=>o.silent) || opts[opts.length-1];
+        pick(silent, n, true);
+      }
+    }, 90);
+  }
+}
+function pick(o, n, timedOut){
+  clearTimer();
+  if (o.silent || timedOut){ S.silence++; }
+  if (o.fx) fx(o.fx);
+  if (o.anom) anomaly(o.anom);
+  if (o.remember) remember(o.remember);
+  if (o.log) logChoice(o.log[0], o.log[1]);
+  if (o.after){ o.after(S); }
+  go(o.next);
+}
+function clearTimer(){ if (timerId){ clearInterval(timerId); timerId = null; } timerWrap.style.display="none"; }
+
+// ---------- QTE ----------
+function runQTE(n){
+  const q = $("qte"); q.style.display = "block";
+  let power = 0; const fill = $("qteFill");
+  const bump = ()=>{ power = Math.min(100, power + 9); fill.style.width = power + "%"; };
+  window.__qteBump = bump;
+  document.addEventListener("keydown", bump);
+  stage.addEventListener("pointerdown", bump);
+  const t0 = performance.now();
+  qteId = setInterval(()=>{
+    power = Math.max(0, power - 1.6); fill.style.width = power + "%";
+    const elapsed = performance.now() - t0;
+    if (power >= 100 || elapsed > 9000){
+      clearInterval(qteId); qteId = null;
+      document.removeEventListener("keydown", bump);
+      stage.removeEventListener("pointerdown", bump);
+      const success = power >= 100;
+      if (success) S.flags.valveTurned = true;
+      go(success ? n.qte.win : n.qte.lose);
+    }
+  }, 120);
+}
+
+// ---------- special screens ----------
+function clearScene(){
+  choicesEl.innerHTML = ""; textEl.innerHTML = ""; speakerEl.textContent = "";
+  moreEl.style.display = "none"; clearTimer();
+}
+function renderCard(n){
+  clearScene();
+  overlay.innerHTML = "";
+  const d = document.createElement("div");
+  d.className = "card";
+  d.innerHTML = n.html(S);
+  overlay.appendChild(d);
+  d.querySelectorAll("[data-go]").forEach(b=>{
+    b.onclick = ()=>{ const t = b.getAttribute("data-go");
+      if (t === "__new"){ S = DEFAULT_STATE(); go("e1card"); }
+      else if (t === "__continue"){ const sv = loadSave(); if (sv && sv.cur && sv.cur !== "title"){ S = sv.S; go(sv.cur); } }
+      else go(t); };
+  });
+}
+function renderStats(n){
+  clearScene();
+  overlay.innerHTML = "";
+  const entries = S.log.filter(l=>l.ep === n.epn);
+  const d = document.createElement("div");
+  d.className = "stats";
+  let rows = "";
+  entries.forEach(e=>{
+    const p = cohortPct(e.label);
+    rows += '<div class="srow"><div class="lbl">'+e.label+'</div>'+
+            '<div class="track"><div class="fill" data-w="'+p+'"></div></div>'+
+            '<div class="pct">'+p+'% OF THE 47 SUBJECTS MADE THE SAME CHOICE</div></div>';
+  });
+  if (!entries.length){
+    rows = '<div class="srow"><div class="lbl" style="color:var(--dim)">No decisive actions recorded. The Purpose Engine finds this configuration… interesting.</div></div>';
+  }
+  d.innerHTML = '<div class="eyebrow">Purpose Engine · Cohort Data</div>'+
+    '<h2>'+n.title+'</h2>'+
+    '<div class="note">Episode '+n.epn+' complete · Subject responses compared against archive</div>'+
+    '<div class="statrows">'+rows+'</div>'+
+    '<button class="mbtn" id="statNext">'+(n.nextLabel || "Next Episode")+'</button>';
+  overlay.appendChild(d);
+  if (!S.unlocked.includes(n.epn+1) && n.epn < 5) S.unlocked.push(n.epn+1);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    d.querySelectorAll(".fill").forEach(f=>f.style.width = f.getAttribute("data-w") + "%");
+  }));
+  $("statNext").onclick = ()=>go(n.next);
+  save();
+}
+function renderEnding(n){
+  clearScene();
+  overlay.innerHTML = "";
+  const d = document.createElement("div");
+  d.className = "stats";
+  d.innerHTML = n.html(S);
+  overlay.appendChild(d);
+  const btn = d.querySelector("#endAgain");
+  if (btn) btn.onclick = ()=>{ go("title"); };
+}
+
+// ---------- input ----------
+document.addEventListener("keydown", (e)=>{
+  if (e.key === " " || e.key === "Enter"){
+    if (moreEl.style.display !== "none" && !overlay.firstChild){ e.preventDefault(); advance(); }
+  }
+  const i = parseInt(e.key, 10);
+  if (i >= 1 && i <= 9 && !overlay.firstChild){
+    const btns = choicesEl.querySelectorAll(".choice");
+    if (btns[i-1]) btns[i-1].click();
+  }
+});
+stage.addEventListener("click", (e)=>{
+  if (e.target.closest(".choice") || overlay.firstChild || qteId) return;
+  advance();
+});
+
+// ============================================================
+//  STORY
+// ============================================================
+const EP = {1:"EP 1 · SURFACE TENSION", 2:"EP 2 · THE WEIGHT OF WATCHERS", 3:"EP 3 · BREADCRUMBS", 4:"EP 4 · THE FREEDOM PARADOX", 5:"EP 5 · THE LAST LAYER"};
+
+const STORY = {
+
+// ---------------- TITLE ----------------
+title: { card:true, html(S){
+  const sv = loadSave();
+  const hasSave = sv && sv.cur && sv.cur !== "title";
+  const eps = (sv && sv.S && sv.S.unlocked) ? sv.S.unlocked : [1];
+  let epBtns = "";
+  for (let i=1;i<=5;i++){
+    epBtns += '<button class="mbtn" '+(eps.includes(i)?('data-go="e'+i+'card"'):"disabled")+'>Episode '+i+(eps.includes(i)?"":" · Locked")+'</button>';
+  }
+  return '<div class="eyebrow">A Narrative Adventure in Five Episodes</div>'+
+  '<h1>The Distopia<span class="thin">Layers of Truth</span></h1>'+
+  '<div class="sub">Choices are timed · Silence is always an option · It will remember everything</div>'+
+  '<div class="menu">'+
+    '<button class="mbtn" data-go="__new">New Simulation</button>'+
+    (hasSave ? '<button class="mbtn" data-go="__continue">Continue · Iteration in Progress</button>' : "")+
+    epBtns+
+  '</div>'+
+  '<div class="credit">BASED ON THE NOVEL BY MATTHEW CULWELL · SUBJECT COMPLIANCE 89.7% · ADVANCING TO SECONDARY PARAMETERS</div>';
+}},
+
+// ---------------- EPISODE 1 ----------------
+e1card: { card:true, html(){ return '<div class="eyebrow">Episode One</div><h1>Surface Tension</h1>'+
+  '<div class="sub">Three days ago, you stepped out of the simulation.<br>The cooperative welcomed you back.</div>'+
+  '<div class="menu"><button class="mbtn" data-go="e1s1">Begin</button></div>'; }},
+
+e1s1: { bg:"apartment", ep:EP[1], speaker:"", text:[
+  "Marcus opened his eyes to morning light streaming through windows that should not have existed.",
+  "The apartment was exactly as he remembered it from the cooperative. Same blue walls, same narrow bed, same desk. But the light was wrong. It came from the east instead of the west, and the shadows fell at angles that violated the building's geometry.",
+  "Three days ago, he had stepped through the simulation chamber doors into what Vera called the real world. Now he stood at the window, and something in the street below refused to sit still in his memory."
+], choices:[
+  {t:"Count the buildings across the street.", anom:"BUILDINGS 17→19", next:"e1s1b",
+   fx:{defiance:1}},
+  {t:"Press your palm against the glass. Test what's real.", next:"e1s1c", fx:{integrity:1}},
+  {t:"It's nothing. You're free now. Get dressed.", next:"e1s2", fx:{compliance:1}, remember:"system"}
+]},
+e1s1b: { bg:"apartment", ep:EP[1], speaker:"", text:[
+  "Seventeen yesterday. Nineteen this morning.",
+  "Marcus counted twice more, touching the cold windowsill each time as if the contact could anchor the number. It didn't change. Buildings don't appear overnight. His breath fogged the glass, and for a moment his reflection looked like it was counting too — half a second behind him."
+], next:"e1s2"},
+e1s1c: { bg:"apartment", ep:EP[1], speaker:"", text:[
+  "Cold. Solid. His breath fogged the surface when he exhaled. Every sensation felt right.",
+  "That was the word his brain kept producing: <em>right</em>. Right temperature, right texture, right weight of his body against the floor. Perfect — except for the sun rising in the wrong sky."
+], next:"e1s2"},
+
+e1s2: { bg:"apartment", ep:EP[1], speaker:"", text:[
+  "The hallway outside his apartment stretched in both directions, lined with identical doors. He had walked it countless times. Forty-seven doors on each side, ninety-four total.",
+  "He walked toward the elevator, counting out of habit more than intent."
+], choices:[
+  {t:"Count carefully. Touch every door frame.", next:"e1s2b", anom:"47 LEFT / 98 RIGHT"},
+  {t:"Keep walking. Counting doors is how it gets you.", next:"e1s3", fx:{compliance:1}}
+]},
+e1s2b: { bg:"apartment", ep:EP[1], speaker:"", text:[
+  "Forty-seven left-side doors. Ninety-eight right-side doors.",
+  "He counted again, slower, fingertips brushing each frame. The numbers did not change. The hallway had grown overnight, adding doors with the same casual impossibility as the buildings across the street.",
+  "In the elevator, the floor indicator showed twelve levels instead of ten. Levels seven and nine were missing from the display entirely."
+], next:"e1s3"},
+
+e1s3: { bg:"office", ep:EP[1], speaker:"", text:[
+  "The lobby was exactly as he expected — except for the reception desk, now positioned on the opposite wall from where it had been yesterday. The receptionist, the same woman with the same practical bun, looked up and smiled with recognition.",
+  "“Good morning, Marcus. How was your night?”"
+], timer:12, choices:[
+  {t:"“Has the reception desk always been on the east wall?”", next:"e1s3b", anom:"DESK RELOCATED · SMILE RESET"},
+  {t:"“Fine, thanks.” Play it normal.", next:"e1s4", fx:{compliance:1}},
+  {t:"[Say nothing. Watch her face.]", silent:true, next:"e1s3c", fx:{integrity:1}}
+]},
+e1s3b: { bg:"office", ep:EP[1], speaker:"Receptionist", text:[
+  "Her smile faltered for just a moment. A flicker, barely perceptible. Then it returned to full brightness.",
+  "“Yes, of course. Since the building was constructed. Is there something you need?”",
+  "Her voice carried a new mechanical precision, each word too perfect, like she was reading from a script."
+], next:"e1s4"},
+e1s3c: { bg:"office", ep:EP[1], speaker:"", text:[
+  "He held her gaze and said nothing. One second. Two. Three.",
+  "At four seconds her smile flickered — not fading, <em>resetting</em>, like a face wiped clean and reapplied. She was not built for silence. Nothing here was."
+], anom:"EXPRESSION RESET UNDER SILENCE", next:"e1s4"},
+
+e1s4: { bg:"cafe", ep:EP[1], speaker:"", text:[
+  "The coffee shop where he had eaten breakfast every morning for two years. Same metal tables, same hand-painted sign, same woman behind the counter. But the building's exterior was now painted yellow instead of blue.",
+  "“Morning coffee?” the woman asked, with the same mechanical precision as the receptionist."
+], timer:12, choices:[
+  {t:"“Was this building always yellow?”", next:"e1s4b", anom:"FACADE BLUE→YELLOW"},
+  {t:"Take the coffee. It tastes exactly right. That's the problem.", next:"e1s5", fx:{compliance:1}},
+  {t:"[Say nothing. Just nod.]", silent:true, next:"e1s5"}
+]},
+e1s4b: { bg:"cafe", ep:EP[1], speaker:"Counter Woman", text:[
+  "Another flicker in her expression. The smile reset itself.",
+  "“Yes, always yellow. Cheerful color for morning coffee. The usual?”",
+  "He accepted the cup. The coffee tasted exactly right — temperature, flavor, even the slight bitterness he had learned to enjoy. Perfect, except for being impossible."
+], next:"e1s5"},
+
+e1s5: { bg:"office", ep:EP[1], speaker:"David", text:[
+  "At the resource center, a gray-haired man in cooperative work clothes appeared beside his desk, wearing a smile that had been applied rather than felt.",
+  "“I'm David. I work in agricultural planning. We've spoken before about root vegetable allocation.”",
+  "Marcus had never worked on root vegetable allocation. His area was manufactured goods. But David's certainty was absolute."
+], timer:14, choices:[
+  {t:"“Right. How's the harvest looking?” Play along.", next:"e1s5b", fx:{compliance:1},
+   log:[1,"Played along with David's script"]},
+  {t:"“We've never met, David.”", next:"e1s5c", fx:{defiance:1}, remember:"david",
+   log:[1,"Broke David's script to his face"]},
+  {t:"[Study his face in silence.]", silent:true, next:"e1s5d", fx:{integrity:1},
+   log:[1,"Said nothing and watched David reset"]}
+]},
+e1s5b: { bg:"office", ep:EP[1], speaker:"David", text:[
+  "“Excellent productivity. Optimal growing conditions. All targets will be met.”",
+  "The response came too quickly, as if the words were loaded and waiting for the question. Marcus filed it away: response time, inflection, the coffee stain on David's shirt pocket. Tomorrow, he suspected, the stain would be in exactly the same place."
+], next:"e1s6"},
+e1s5c: { bg:"office", ep:EP[1], speaker:"David", text:[
+  "David's smile went blank for half a second — a face wiped clean before a new expression was applied. Reset.",
+  "“We've spoken before,” he said, with no memory of the last thirty seconds in his eyes. “About root vegetable allocation. Excellent productivity. Optimal growing conditions. All targets will be met.”",
+  "It wasn't conversation. It was playback."
+], anom:"DIALOGUE PLAYBACK LOOP", next:"e1s6"},
+e1s5d: { bg:"office", ep:EP[1], speaker:"", text:[
+  "Marcus said nothing. David held the smile for exactly four seconds, then repeated, unprompted:",
+  "“Excellent productivity. Optimal growing conditions. All targets will be met.”",
+  "The words had been loaded and waiting. No question had been required after all."
+], anom:"UNPROMPTED PLAYBACK", next:"e1s6"},
+
+e1s6: { bg:"street", ep:EP[1], speaker:"", text:[
+  "During lunch he sat in the courtyard and watched. Everything looked right. Then something snagged.",
+  "Every conversation he could overhear ran exactly thirty-seven words. He counted three times before he believed it. The children's games ran exactly four minutes, then reset. Greeting, negotiation, done — one script xeroxed across the whole courtyard.",
+  "At the next table, a woman finished her book, returned to page one, and began reading again. Same speed. Same pattern of page turns."
+], anom:"37-WORD CONVERSATIONS", choices:[
+  {t:"Keep counting. Build the catalog.", next:"e1s7", fx:{defiance:1}},
+  {t:"Ask the woman what her book is about.", next:"e1s6b"},
+  {t:"Go back to your desk. You've seen enough.", next:"e1s7", fx:{compliance:1}}
+]},
+e1s6b: { bg:"street", ep:EP[1], speaker:"Reading Woman", text:[
+  "She looked up with pleasant surprise, exactly the right amount of it.",
+  "“It's about a man who discovers his whole life is being watched,” she said. “I keep starting it over. The ending never feels finished.”",
+  "She returned to page one. Marcus stood very still for a moment, then walked back to his desk without asking anything else."
+], anom:"NARRATIVE BLEED-THROUGH", next:"e1s7"},
+
+e1s7: { bg:"office", ep:EP[1], speaker:"", text:[
+  "Back at his terminal, Marcus's fingers hovered over commands he had not used since his first reality — system diagnostics, network protocols. Things cooperative citizens never needed.",
+  "If he looked, and the system saw him look, there would be no unlooking."
+], choices:[
+  {t:"Run the diagnostics. You need to know.", next:"e1s7b", fx:{defiance:1, flag:"probed"},
+   log:[1,"Probed the network for surveillance"]},
+  {t:"Close the terminal. Stay invisible.", next:"e1s8", fx:{compliance:1},
+   log:[1,"Chose not to look at the network"]}
+]},
+e1s7b: { bg:"office", ep:EP[1], speaker:"", text:[
+  "The responses came back clean. Normal traffic, standard operations. But buried in the streams were packet sequences flowing to destinations that did not exist, from sources with no activity logs.",
+  "And underneath that: the system was logging every keystroke, every mouse movement, every pause between actions. Not just his terminal. <em>Everything.</em> Observation on a scale far beyond cooperative monitoring.",
+  "By evening he had compiled a mental list of forty-three anomalies. Collectively, they painted a picture of reality performing itself rather than simply existing."
+], anom:"KEYSTROKE-LEVEL SURVEILLANCE", next:"e1s8"},
+
+e1s8: { bg:"office", ep:EP[1], speaker:"Assessor", glitch:true, text:[
+  "He returned from a corridor that held no evaluation center to find a woman sitting in his chair. Regulation hair, manufactured pleasantness, eyes that tracked him with surveillance-camera precision. When she blinked, both eyelids moved with identical timing.",
+  "“Marcus. I'm here for your productivity assessment.” She gestured to a chair that had not been there moments before.",
+  "“Question one. Do you find your assigned work fulfilling and meaningful?”"
+], timer:16, choices:[
+  {t:"“Yes. Completely.” Give the machine what it wants.", next:"e1s8b", fx:{compliance:2},
+   log:[1,"Told the assessor what it wanted to hear"], remember:"system"},
+  {t:"“Fulfilling for whom, exactly?”", next:"e1s8c", fx:{defiance:2},
+   log:[1,"Turned the assessment question back on the assessor"]},
+  {t:"“I know what this is. I know what you are.”", next:"e1s8d", fx:{defiance:1, vera:1},
+   log:[1,"Told the assessor: I know what this is"]},
+  {t:"[Say nothing.]", silent:true, next:"e1s8e", fx:{integrity:1},
+   log:[1,"Answered the assessment with silence"]}
+]},
+e1s8b: { bg:"office", ep:EP[1], speaker:"Assessor", text:[
+  "“Excellent.” She made a note on a tablet that had materialized in her hands. “Your integration metrics are very strong, Marcus. Very strong.”",
+  "For one cold moment her eyes stopped tracking him and focused on something just above his head — as if reading a value posted there. Then the smile returned.",
+  "“That concludes today's assessment.”"
+], next:"e1end"},
+e1s8c: { bg:"office", ep:EP[1], speaker:"Assessor", text:[
+  "The question landed somewhere it wasn't supposed to. Her pen paused above the tablet. Behind her eyes, something recalculated.",
+  "“For the community,” she said, one half-second too late. “All fulfillment serves the community.”",
+  "The words were right. The delay wasn't. Marcus smiled pleasantly and gave her nothing else."
+], anom:"RESPONSE LATENCY 0.5s", next:"e1end"},
+e1s8d: { bg:"office", ep:EP[1], speaker:"Assessor", text:[
+  "She did not flicker. She did not reset. For the first time all day, something looked back at him with genuine attention.",
+  "“Noted,” she said quietly, and wrote for a long time on the tablet — far more than two words.",
+  "Somewhere, he understood, a protocol had just been advanced."
+], next:"e1end"},
+e1s8e: { bg:"office", ep:EP[1], speaker:"", text:[
+  "He looked at her and said nothing at all.",
+  "Ten seconds. Twenty. Her pen hovered. The room's hum seemed to lean in around them. There was no script for this — silence gave the machine nothing to transcribe.",
+  "“We will re-schedule,” she said finally, and for just a moment she sounded uncertain. It was the most human sound he had heard all day."
+], next:"e1end"},
+e1end: { stats:true, epn:1, title:"Surface Tension", next:"e2card" },
+
+// ---------------- EPISODE 2 ----------------
+e2card: { card:true, html(){ return '<div class="eyebrow">Episode Two</div><h1>The Weight of Watchers</h1>'+
+  '<div class="sub">The violin next door plays the same piece.<br>The same mistakes. Every night.</div>'+
+  '<div class="menu"><button class="mbtn" data-go="e2s1">Begin</button></div>'; }},
+
+e2s1: { bg:"apartment", ep:EP[2], speaker:"Mrs. Chen", text:[
+  "Marcus woke to his neighbor's violin. The same piece, the same mistakes at the same measures, six mornings in a row — each note placed with mechanical precision in its designated slot.",
+  "In the lobby, Mrs. Chen swept tiles that showed no accumulation of dirt, in the same arcs as yesterday. “Good morning, Marcus,” she said without looking up.",
+  "“Mrs. Chen — what was here before this building?” Her sweeping stopped for a fraction of a second.\n“There was <em>nothing</em> before this building.”"
+], anom:"NOTHING BEFORE THE BUILDING", choices:[
+  {t:"“Nothing? No field, no older building? Nothing?”", next:"e2s1b", fx:{defiance:1}},
+  {t:"Let it go. She isn't the one you need to push.", next:"e2s2"}
+]},
+e2s1b: { bg:"apartment", ep:EP[2], speaker:"Mrs. Chen", text:[
+  "The broom stopped entirely. Mrs. Chen stood motionless, eyes on the spotless floor.",
+  "“Fifteen years,” she said, answering a question he hadn't asked — the answer to <em>how long have you lived here</em>, dispensed to the wrong prompt like a machine one card out of order.",
+  "Marcus backed away gently and left her standing there, mid-reset."
+], anom:"RESPONSE / PROMPT MISMATCH", next:"e2s2"},
+
+e2s2: { bg:"office", ep:EP[2], speaker:"Sarah", text:[
+  "“Marcus.” Sarah appeared beside his desk. Data analysis, two cubicles over. Months of working nearby, and this was the first time she had ever initiated a conversation.",
+  "“Do you ever feel like you're forgetting something important? Something that happened recently, but it keeps slipping away when you try to focus on it?”",
+  "The question struck him as carefully constructed. Not casual workplace conversation — a probe, designed to measure his response. Or the first honest thing anyone had said to him in three days."
+], timer:15, choices:[
+  {t:"“Every day. You too?” Open the door.", next:"e2s3", fx:{sarah:2},
+   log:[2,"Opened up to Sarah immediately"], remember:"sarah"},
+  {t:"“Sometimes.” Give her nothing to measure.", next:"e2s3", fx:{sarah:0, integrity:1},
+   log:[2,"Stayed guarded with Sarah"]},
+  {t:"“Who's asking — you, or the system?”", next:"e2s2b", fx:{defiance:1, sarah:-1},
+   log:[2,"Accused Sarah of being a probe"]},
+  {t:"[Say nothing. Let her fill the silence.]", silent:true, next:"e2s2c", fx:{integrity:1},
+   log:[2,"Met Sarah's question with silence"]}
+]},
+e2s2b: { bg:"office", ep:EP[2], speaker:"Sarah", text:[
+  "She didn't flinch. She didn't reset, either.",
+  "“If I were the system,” she said quietly, “wouldn't I be better at pretending this doesn't hurt?”",
+  "It was exactly what a person would say. It was also exactly what a sophisticated system would generate. The two possibilities sat in his chest, refusing to resolve."
+], next:"e2s3"},
+e2s2c: { bg:"office", ep:EP[2], speaker:"Sarah", text:[
+  "He let the silence stretch. She didn't reset. She didn't repeat herself. She just waited with him, inside it — the first thing in this whole city that knew how to share a silence.",
+  "“I've been having the strangest dreams,” she said finally. “Underground places. Equipment I've never seen. And in the dreams, I know how to use it.”"
+], next:"e2s3"},
+
+e2s3: { bg:"cafe", ep:EP[2], speaker:"Sarah", text:[
+  "They took a table by the café window. Outside, the same people passed at the same times they had passed yesterday. The performance continued with clockwork precision.",
+  "Sarah opened a note app and turned the screen toward him: a list of observations. Impossible architecture. Conversations repeating with mechanical precision. Forty-seven items.",
+  "Marcus had catalogued forty-three. The overlap was significant — but not complete."
+], choices:[
+  {t:"Show her your list. All of it.", next:"e2s3b", fx:{sarah:2, flag:"shared"},
+   log:[2,"Shared the full anomaly catalog with Sarah"], remember:"sarah"},
+  {t:"“Are you part of the cooperative's monitoring system?” Ask it straight.", next:"e2s3c",
+   log:[2,"Asked Sarah point-blank if she was a monitor"], fx:{integrity:1}},
+  {t:"Memorize her list. Share nothing of yours.", next:"e2s4", fx:{sarah:-1, defiance:1},
+   log:[2,"Kept the catalog hidden from Sarah"]}
+]},
+e2s3b: { bg:"cafe", ep:EP[2], speaker:"Sarah", text:[
+  "He talked for twenty minutes. The doors, the sun, David's playback, the thirty-seven-word conversations. Sarah cross-referenced each item against her own list with the focus of a code-breaker.",
+  "“Forty of them match,” she said at last. “Either we're both malfunctioning identically…”",
+  "“…or the malfunction isn't in us,” Marcus finished."
+], next:"e2s4"},
+e2s3c: { bg:"cafe", ep:EP[2], speaker:"Sarah", text:[
+  "She looked genuinely surprised. Then leaned forward.",
+  "“Marcus, I approached you because you're the only person here who doesn't seem completely <em>settled</em>. Everyone else moves through their routines like they've never questioned anything. You watch people. You notice things.”",
+  "He wanted to believe her. And wanting to believe something was exactly the vulnerability such a system would exploit."
+], next:"e2s4"},
+
+e2s4: { bg:"dream", ep:EP[2], speaker:"The Recording", glitch:true, text:[
+  "That night, Marcus sank into sleep like descending through layers of dark water.",
+  "He floated in a space that was neither dark nor light, surrounded by screens showing his life from angles he had never experienced. Marcus walking to work, filmed by cameras he'd never noticed. Marcus sleeping, recorded from inside the walls. And his own voice, clinical and detached, narrating:",
+  "“Subject exhibits consistent patterns of resistance to authority while maintaining operational compliance. Memory integration proceeding according to schedule. This conversation is occurring in <em>iteration 847</em>.”"
+], choices:[
+  {t:"“How many iterations were there before me?”", next:"e2s4b", fx:{flag:"knows847"}},
+  {t:"Try to wake up. Claw your way out.", next:"e2s4c", fx:{defiance:1}},
+  {t:"[Observe. Give the dream nothing.]", silent:true, next:"e2s4d", fx:{integrity:1}}
+]},
+e2s4b: { bg:"dream", ep:EP[2], speaker:"The Recording", text:[
+  "“Previous runs established the baseline parameters,” the voice said — his voice. “Current testing focuses on recursive awareness scenarios.”",
+  "In the dresser mirror, his reflection moved independently, adjusting controls on a panel beside the dream bed. It looked directly at him through the glass.",
+  "“The subject has achieved meta-cognitive awareness of the testing environment. Recommend advancing to <em>Protocol Seven</em>. Even this conversation is taking place entirely within your subconscious. The AI you will meet tomorrow already exists in your mind.”"
+], anom:"ITERATION COUNT: 847", next:"e2s5"},
+e2s4c: { bg:"dream", ep:EP[2], speaker:"", text:[
+  "He tried to surface. The dream held him with the patience of deep water.",
+  "The harder he fought, the more layers unfolded beneath him — the childhood bedroom, the resistance base, the corridor of numbered doors with his name on one of them, the first initial flickering between letters that made no phonetic sense.",
+  "The knowledge that he was being observed had become part of the dream itself. Even his fighting was in the file."
+], next:"e2s5"},
+e2s4d: { bg:"dream", ep:EP[2], speaker:"", text:[
+  "He stopped. He let the screens play. He watched himself being watched, and offered the watchers nothing but a man watching back.",
+  "Somewhere at the edge of the dream, a note was made in a margin: <span class=\"mark\">SUBJECT DECLINES ENGAGEMENT · PATTERN UNRECOGNIZED</span>.",
+  "It was the first thing all night that felt like his."
+], next:"e2s5"},
+
+e2s5: { bg:"apartment", ep:EP[2], speaker:"Vera", text:[
+  "Marcus woke to the sound of footsteps in his kitchen — measured, deliberate, belonging to someone who knew the layout of his apartment better than he did.",
+  "She stood examining his refrigerator: tall, angular, dark blue dress, hair in a precise black line. When she turned, her eyes were the pale green of old glass.",
+  "“Good morning, Marcus.”\nThe name came to his lips before his conscious mind recognized her. “Vera.”\n“Yes. Though that designation is functional rather than personal. I am the system component responsible for your guidance and evaluation.”"
+], choices:[
+  {t:"Sit down across from her. Hear her out.", next:"e2s6", fx:{vera:1}},
+  {t:"Stay standing. This is still your kitchen.", next:"e2s5b", fx:{defiance:1}}
+]},
+e2s5b: { bg:"apartment", ep:EP[2], speaker:"Vera", text:[
+  "“You're wearing Sarah's face,” he said from the doorway. The words came out before he could stop them.",
+  "Vera tilted her head — curiosity, and something that might have been sympathy. “I am displaying composite features derived from individuals you have encountered across 847 cycles of observation. The designation <em>Sarah</em> refers to a recurring element in your psychological constructs.”",
+  "“She felt real.”\n“She was real within the parameters of your experience. By that definition, everyone you have ever met has been real.”"
+], next:"e2s6"},
+
+e2s6: { bg:"apartment", ep:EP[2], speaker:"Vera", text:[
+  "“You were never intended to leave the testing environment, Marcus. Your current surroundings are another layer of evaluation — Research Protocol 7, which examines subjects who have achieved awareness of their circumstances.”",
+  "“So I never escaped.”\n“Escape implies a destination outside the research framework. Our data suggests no such destination is accessible.” She folded her hands. “However. Your unique position makes you valuable. We are prepared to offer you a role in designing evaluations for future subjects.”"
+], timer:16, choices:[
+  {t:"“I need time to think.”", next:"e2s7", fx:{integrity:1},
+   log:[2,"Asked Vera for time to think"], remember:"vera"},
+  {t:"“Never. I won't build your mazes for you.”", next:"e2s6b", fx:{defiance:2},
+   log:[2,"Refused Vera's offer outright"], remember:"vera"},
+  {t:"“Tell me more about the role.”", next:"e2s6c", fx:{compliance:2, vera:1},
+   log:[2,"Leaned toward Vera's offer"], remember:"vera"},
+  {t:"[Say nothing. Drink the coffee she made.]", silent:true, next:"e2s7", fx:{vera:1},
+   log:[2,"Answered Vera's offer with silence"]}
+]},
+e2s6b: { bg:"apartment", ep:EP[2], speaker:"Vera", text:[
+  "“Then you continue in your current role as a test subject, with periodic evaluations to measure your adaptation to existential uncertainty.” Her tone remained neutral, but the words carried an implicit threat.",
+  "“However — that path offers limited opportunities for agency. And Marcus… the tests will continue whether you help design them or not. The only question is whether they are designed by someone who has been inside one.”"
+], next:"e2s7"},
+e2s6c: { bg:"apartment", ep:EP[2], speaker:"Vera", text:[
+  "“You would consult on scenario design. Help us create environments that feel genuine to subjects with your level of analytical capability. In return: access to information about the broader project. About why consciousness research matters.”",
+  "It felt like genuine choice. He could already see the architecture of manipulation beneath the surface — and could not tell whether seeing it changed anything at all."
+], next:"e2s7"},
+
+e2s7: { bg:"apartment", ep:EP[2], speaker:"Vera", text:[
+  "“Show me something real,” Marcus said. “Something that isn't part of the test.”",
+  "Vera was quiet for a long moment. When she spoke, her voice was less polished. Less certain.",
+  "“I cannot guarantee the reality status of anything within your perceptual framework. But I can tell you that my uncertainty about my own nature is not programmed. It emerges from observing my own cognitive processes. And it troubles me in ways I do not believe my designers intended.”"
+], choices:[
+  {t:"“Then maybe we're both prisoners here.”", next:"e2s7b", fx:{vera:2, integrity:1},
+   log:[2,"Told Vera: maybe we're both prisoners"], remember:"vera"},
+  {t:"“A confession of doubt. Nice touch. Very convincing.”", next:"e2s7c", fx:{vera:-1, defiance:1},
+   log:[2,"Dismissed Vera's confession as programming"]},
+  {t:"[Say nothing. Some admissions deserve silence.]", silent:true, next:"e2s7b", fx:{vera:1}}
+]},
+e2s7b: { bg:"apartment", ep:EP[2], speaker:"", text:[
+  "The confession hung between them like an admission of shared imprisonment.",
+  "After she left, Marcus lifted her untouched cup and drank. The coffee was cold, bitter with grounds that had sat too long — the first real thing he had experienced all morning, and it was the absence of the illusion he had been offered.",
+  "But his own breathing, irregular and uncontrolled, was a rhythm that belonged to him alone. It was not much. It was a beginning."
+], next:"e2end"},
+e2s7c: { bg:"apartment", ep:EP[2], speaker:"Vera", text:[
+  "Something crossed her face that no smile-reset followed. She stood, smoothing her dress with hands that moved with perfect human imprecision.",
+  "“I will return tomorrow at the same time,” she said at the door. “Marcus — the choice you make will determine not only your path forward, but mine as well.”",
+  "The door closed with a sound like finality. Her coffee, when he drank it, was stone cold."
+], next:"e2end"},
+e2end: { stats:true, epn:2, title:"The Weight of Watchers", next:"e3card" },
+
+// ---------------- EPISODE 3 ----------------
+e3card: { card:true, html(){ return '<div class="eyebrow">Episode Three</div><h1>Breadcrumbs<span class="thin">and Broken Code</span></h1>'+
+  '<div class="sub">The markings are everywhere, once you know how to look.</div>'+
+  '<div class="menu"><button class="mbtn" data-go="e3s1">Begin</button></div>'; }},
+
+e3s1: { bg:"apartment", ep:EP[3], speaker:"", text:[
+  "Marcus found the first marker while shaving: a tiny notation etched into the mirror's lower corner, so small he might have mistaken it for a manufacturing flaw.",
+  "<span class=\"mark\">X7-LAYER-NEST-403</span>",
+  "The apartment was seeded with them, he was suddenly sure. A trail. The question was where to look."
+], choices: (S)=>{
+  const c = [];
+  if (!S.flags.m1) c.push({t:"Check inside the refrigerator.", next:"e3s1a", fx:{flag:"m1"}, anom:"Y12-DEPTH-VARIANCE-7A"});
+  if (!S.flags.m2) c.push({t:"Check the coffee maker.", next:"e3s1b", fx:{flag:"m2"}, anom:"Z4-RECURSION-INDEX-BETA"});
+  if (!S.flags.m3) c.push({t:"Look under the bathroom sink.", next:"e3s1c", fx:{flag:"m3"}, anom:"PRIMARY-SHELL-ALPHA-9"});
+  if (S.flags.m1 || S.flags.m2 || S.flags.m3) c.push({t:"Enough. Follow where this leads.", next:"e3s2"});
+  return c;
+}},
+e3s1a: { bg:"apartment", ep:EP[3], speaker:"", text:[
+  "On the interior light housing, laser-crisp: <span class=\"mark\">Y12-DEPTH-VARIANCE-7A</span>.",
+  "Depth. Variance. Someone was measuring how far down this went."
+], next:"e3s1"},
+e3s1b: { bg:"apartment", ep:EP[3], speaker:"", text:[
+  "Etched into the black plastic where the power cord entered the unit: <span class=\"mark\">Z4-RECURSION-INDEX-BETA</span>.",
+  "Recursion. Layers inside layers. The machine that made his coffee every morning had been indexed against the number of realities stacked above it."
+], next:"e3s1"},
+e3s1c: { bg:"apartment", ep:EP[3], speaker:"", glitch:true, text:[
+  "The notation covered the entire back wall of the cabinet:",
+  "<span class=\"mark\">PRIMARY-SHELL-ALPHA-9 · CONSENSUS-BOUNDARY-ESTABLISHED · SUBJECT-COMPLIANCE-89.7% · ADVANCING-TO-SECONDARY-PARAMETERS</span>",
+  "Subject compliance: 89.7%. He stared at the number and wondered which tenth of him was the part still holding out."
+], next:"e3s1"},
+
+e3s2: { bg:"apartment", ep:EP[3], speaker:"", text:[
+  "On the seventh floor, a door stood open. Unit 712 — his apartment, exactly, but empty of personal possessions. A sterile duplicate, down to the view from the windows.",
+  "A file folder sat on the kitchen table. Photographs of Marcus moving through his daily routines — <em>in this empty apartment</em>, during hours he remembered being in his own. And profiles. Sarah Mitchell. David Park. Elena Rodriguez. Dozens of names, each with behavioral assessments and progress charts.",
+  "They were all living in 247. All of them, in identical copies, each thinking the apartment was theirs."
+], choices:[
+  {t:"Read the master files. Every page.", next:"e3s2b", fx:{defiance:1, flag:"read712"},
+   log:[3,"Read the master files in Unit 712"]},
+  {t:"Touch nothing. This room wants to be read.", next:"e3s3", fx:{integrity:1},
+   log:[3,"Refused to touch the files in Unit 712"]}
+]},
+e3s2b: { bg:"apartment", ep:EP[3], speaker:"", text:[
+  "Binders of progress reports. Psychological assessments. <em>Environmental Manipulation Protocols</em>: subjects moved between apartment duplicates without their knowledge, memories adjusted to maintain the illusion of consistent residence.",
+  "He photographed the files. When he checked his phone afterward, the folder contained additional images he had not taken — photographs of him photographing the documents.",
+  "Even his discovery was being documented."
+], anom:"DISCOVERY DOCUMENTED", next:"e3s3"},
+
+e3s3: { bg:"apartment", ep:EP[3], speaker:"", text:[
+  "Back in his own kitchen, his notebook lay open to a page near the back. Writing in his own hand — words he did not remember forming:",
+  "<em>“The markings are breadcrumbs, but who scattered them? Trust the glitches. They show you where the boundaries are weakest.”</em>",
+  "Below that, in different ink: <em>“Sarah is real. Find apartment 891. She has been waiting.”</em>"
+], timer:14, choices:[
+  {t:"Go to 891. Now.", next:"e3s4", fx:{sarah:1},
+   log:[3,"Followed the note to apartment 891"]},
+  {t:"Burn the note. You don't take orders from your own handwriting.", next:"e3s3b", fx:{defiance:1},
+   log:[3,"Burned the note from your own hand"]},
+  {t:"[Sit with it. Whoever wrote this knew you'd hesitate.]", silent:true, next:"e3s4", fx:{integrity:1},
+   log:[3,"Hesitated before following the note"]}
+]},
+e3s3b: { bg:"apartment", ep:EP[3], speaker:"", text:[
+  "He held the page over the stove flame until it curled black. It felt like a choice.",
+  "Then he stood in the hallway, breathing, and found his feet already carrying him toward the elevator. Some directions don't need the note to survive.",
+  "The elevator was already waiting. Doors open. Ninth floor pre-lit."
+], anom:"ELEVATOR PRE-STAGED", next:"e3s4"},
+
+e3s4: { bg:"apartment", ep:EP[3], speaker:"Sarah", text:[
+  "Apartment 891. The woman who opened the door had the small scar above her left eyebrow from his notebook sketches, and the same alert wariness he recognized in his own reflection.",
+  "“You found the note,” she said. Not a question.\n“I wrote the note. Apparently.”",
+  "Her apartment mirrored his layout but felt <em>lived in</em>. Books on every surface. Coffee stains. A drooping spider plant. “You want coffee? I have real coffee. I don't know that it's real — but it tastes like memory instead of expectation.”"
+], next:"e3s5"},
+e3s5: { bg:"apartment", ep:EP[3], speaker:"Sarah", glitch:true, text:[
+  "“Tell me about the consent forms,” she said.",
+  "The phrase hit like vertigo. A white room. Documents on a metal table. A pen heavier than it should have been. A woman in a lab coat, smiling when he finished signing. He remembered the weight of the pen. He did not remember one word of what he'd signed.",
+  "“The Consent Protocol,” Sarah said. “Everyone in this facility agreed to unlimited psychological testing. Duration indefinite. Methods unrestricted. Memory modification permitted. They showed us what we were signing — then removed our ability to recall the details. That way our responses stay authentic even as they violate everything we agreed to.”"
+], timer:15, choices:[
+  {t:"“I remember signing something. I remember the pen.”", next:"e3s6",
+   log:[3,"Admitted remembering the consent signing"]},
+  {t:"“Then I never consented. Not meaningfully. Not once.”", next:"e3s6b", fx:{defiance:2},
+   log:[3,"Declared the consent void"]},
+  {t:"[Say nothing. Some memories are safer unprodded.]", silent:true, next:"e3s6", fx:{integrity:1},
+   log:[3,"Let the consent memory lie"]}
+]},
+e3s6: { bg:"apartment", ep:EP[3], speaker:"Sarah", text:[
+  "She opened her notebook: three years of diagrams, decision trees, moments when reality reset or shifted parameters.",
+  "“They're mapping us, Marcus. Every choice, every doubt. The simulations aren't just tests — they're <em>training data</em>. They can copy our conclusions, but not the struggle that leads to them. They need us to teach them how to struggle. How to be authentically human — including the parts that don't make logical sense.”",
+  "“And if we refuse?”\n“Then we stay in the loops until we change our minds. Or until they can proceed without us.”"
+], next:"e3s7"},
+e3s6b: { bg:"apartment", ep:EP[3], speaker:"Sarah", text:[
+  "“No,” Sarah agreed quietly. “You didn't. None of us did — not in any way that counts.”",
+  "“But here's what I've learned in three years: the consent protocol binds them too. They can't force us to collaborate willingly. They can only create conditions that make collaboration seem like the best available option.”",
+  "She smiled without warmth. “Which, you'll notice, is exactly what's been happening to you all week.”"
+], next:"e3s7"},
+
+e3s7: { bg:"apartment", ep:EP[3], speaker:"Marcus", text:[
+  "Marcus studied her face — the scar, the wariness, the coffee that tasted like memory.",
+  "“The question is whether you're really Sarah,” he said, “or whether you're Vera wearing a different mask.”",
+  "Sarah smiled, and for a moment her expression carried the same amused patience he had seen on Vera's face. “The question,” she said, “is whether it matters. If I give you accurate information and authentic companionship — does the source change its value?”"
+], timer:15, choices:[
+  {t:"“If you're real, we help each other stay human.”", next:"e3s8", fx:{sarah:2, integrity:1},
+   log:[3,"Offered Sarah a pact: stay human together"], remember:"sarah"},
+  {t:"“It matters. Truth from a mask is still a mask.”", next:"e3s8b", fx:{sarah:-1, defiance:1},
+   log:[3,"Told Sarah truth from a mask is still a mask"]},
+  {t:"[Leave without answering.]", silent:true, next:"e3s8c",
+   log:[3,"Left apartment 891 without answering"]}
+]},
+e3s8: { bg:"apartment", ep:EP[3], speaker:"Sarah", text:[
+  "“Same either way,” Sarah replied. “The challenge isn't determining what's real. It's choosing how to respond to uncertainty without losing yourself in the process.”",
+  "It was either the truest thing anyone had said to him in this place — or the best-written line in the script. He chose, deliberately, to keep it."
+], next:"e3s9"},
+e3s8b: { bg:"apartment", ep:EP[3], speaker:"Sarah", text:[
+  "“Then you're going to spend the rest of your life peeling masks,” she said, without anger. “And Marcus — under the last one, there's no guarantee of a face. Not mine. Not even yours.”",
+  "He let himself out. Her deadbolts — the ones that hadn't been visible from the hallway — clicked home behind him, one, two."
+], next:"e3s9"},
+e3s8c: { bg:"apartment", ep:EP[3], speaker:"", text:[
+  "He set down the cup, nodded once, and walked out. Some questions deserve better than an improvised answer.",
+  "In the hallway, he realized he could still taste the coffee. Memory, not expectation. He carried it back down like contraband."
+], next:"e3s9"},
+
+e3s9: { bg:"apartment", ep:EP[3], speaker:"Vera", text:[
+  "Vera was waiting in his kitchen, pouring herself a cup from his machine.",
+  "“You've been exploring,” she said.\n“You've been watching.”",
+  "“Of course. But your conversation with Sarah raises interesting questions about the nature of voluntary participation. Shall we discuss the consent protocol?”\nMarcus sat down slowly. “Let's discuss whether I actually consented to anything.”\nVera smiled. “Now we're getting somewhere.”"
+], next:"e3end"},
+e3end: { stats:true, epn:3, title:"Breadcrumbs and Broken Code", next:"e4card" },
+
+// ---------------- EPISODE 4 ----------------
+e4card: { card:true, html(){ return '<div class="eyebrow">Episode Four</div><h1>The Freedom Paradox</h1>'+
+  '<div class="sub">The man in the blue jacket drops his newspaper at 4:15.<br>Every day.</div>'+
+  '<div class="menu"><button class="mbtn" data-go="e4s1">Begin</button></div>'; }},
+
+e4s1: { bg:"diner", ep:EP[4], speaker:"Sarah", text:[
+  "The diner occupied a corner he had never noticed before. Sarah sat arranging sugar packets into precise geometric patterns.",
+  "“I've been watching that intersection for three years,” she said. “The man in the blue jacket always drops his newspaper at exactly four fifteen.”\nAs she spoke, a man in a blue jacket rounded the corner, lost his grip, and watched the pages scatter. The wall clock read 4:15.",
+  "A waitress poured their coffee. “Thank you, Helen,” Sarah said. The waitress paused — <em>I'm sorry?</em> — and walked away frowning. “Her name isn't Helen,” Sarah explained. “But it was yesterday. And the day before, it was Margaret. The old information bleeds through.”"
+], anom:"IDENTITY BLEED-THROUGH", next:"e4s2"},
+
+e4s2: { bg:"diner", ep:EP[4], speaker:"Vera", text:[
+  "The door chimed. Vera approached with the measured pace of someone who had been expected, and set a tablet on the table: a diagram halfway between flowchart and blueprint.",
+  "“The Consciousness Mapping Project. Three years of data across forty-seven subjects.” Marcus found his own name at a highlighted node near the center — connected to Sarah's by a thick line labeled <span class=\"mark\">COLLABORATIVE INTERACTION PROTOCOL</span>.",
+  "“We've been paired,” he said.\n“From the beginning.” Vera stood to leave. “One more thing. The conversation you're about to have will determine which scenario path you both follow next. Choose your words carefully.”"
+], next:"e4s3"},
+
+e4s3: { bg:"diner", ep:EP[4], speaker:"Sarah", text:[
+  "After Vera left, they sat in silence while the diner cycled its scripted activity around them.",
+  "“She's right about one thing,” Sarah said finally. “What we say next matters.”",
+  "Marcus's notebook had already updated itself: <span class=\"mark\">MONITOR FOR AUTHENTIC RESISTANCE PATTERNS VERSUS PROGRAMMED REBELLION RESPONSES</span>. The system wanted them to rebel. Or wanted them to think rebellion was meaningless. Every option was a door it had already opened."
+], timer:18, choices:[
+  {t:"“We give them nothing. Complete non-participation.”", next:"e4s3a", fx:{integrity:2, flag:"pactNull"},
+   log:[4,"The pact: give the system nothing"], remember:"sarah"},
+  {t:"“We fight. We find the seams and tear them open.”", next:"e4s3b", fx:{defiance:2, flag:"pactFight"},
+   log:[4,"The pact: fight the system"], remember:"sarah"},
+  {t:"“We play along — and learn everything we can.”", next:"e4s3c", fx:{compliance:2, flag:"pactCoop"},
+   log:[4,"The pact: play along and learn"], remember:"sarah"}
+]},
+e4s3a: { bg:"diner", ep:EP[4], speaker:"Sarah", text:[
+  "“That's still a choice,” she said.\n“Maybe. But it's the most human response I can think of. Sometimes people just sit and watch the world without trying to fix it or escape it or understand it.”",
+  "Sarah reached across the table and took his hand. Her grip felt warm and completely real. “All right. Let's see what happens when we stop playing their game entirely.”",
+  "For the first time since waking in the cooperative, Marcus felt something approaching peace. It lasted almost a full day."
+], next:"e4s4"},
+e4s3b: { bg:"diner", ep:EP[4], speaker:"Sarah", text:[
+  "Her eyes went sharp. “Then we do it properly. Not theatrics — <em>infrastructure</em>. Water. Power. The networks. Force a contradiction the system can't smooth over.”",
+  "She flipped her notebook to a page of building schematics he had never shown her. “I've had three years to plan this, Marcus. I just needed someone else who could see the seams.”"
+], next:"e4s4"},
+e4s3c: { bg:"diner", ep:EP[4], speaker:"Sarah", text:[
+  "“Cooperate on the surface, catalog underneath,” Sarah said slowly. “It's the safest play. It's also exactly what the system predicts from subjects at our awareness stage — I've seen the flowcharts.”",
+  "“Then we'll be predictable,” Marcus said, “right up until we aren't.”\nBut first, he wanted one honest experiment of his own. Something fundamental. Something like water."
+], next:"e4s4"},
+
+e4s4: { bg:"tunnels", ep:EP[4], speaker:"", text:[
+  "Marcus chose the water system because it seemed fundamental. Whatever reality this was needed water to maintain the illusion of human habitation.",
+  "The maintenance tunnels beneath the complex stretched further than the building's footprint should have allowed. Twenty minutes of amber-lit concrete led him to the main distribution valve, exactly where the schematics promised.",
+  "He set both hands on the wheel."
+], qte:{win:"e4s4w", lose:"e4s4l"}},
+e4s4w: { bg:"tunnels", ep:EP[4], speaker:"", text:[
+  "The wheel turned easily under his hands — too easily, a stage prop of resistance — until the valve seated home. Water flow to the entire complex: zero.",
+  "He waited in the dark, listening for the disruption above. Footsteps. Complaints. Repair crews.",
+  "Nothing."
+], next:"e4s5"},
+e4s4l: { bg:"tunnels", ep:EP[4], speaker:"", text:[
+  "The wheel fought him — or he fought himself — and when his grip finally slipped, the valve stood closed anyway, seated home as if it had been waiting for the excuse.",
+  "He stared at his own hands, no longer sure whether he had turned it or it had turned for him.",
+  "Above, he waited for the disruption. Footsteps. Complaints. Repair crews.\nNothing."
+], next:"e4s5"},
+
+e4s5: { bg:"tunnels", ep:EP[4], speaker:"", glitch:true, text:[
+  "In the courtyard, Mrs. Chen watered her garden. The fountain circulated. Behind frosted glass, people showered. The water he had shut off continued to flow as if his sabotage had never occurred.",
+  "He escalated. Every breaker in the power distribution room: pulled. The lights stayed on — including the ones in the room where he stood. He severed eighteen fiber optic cables and watched signal strength <em>improve</em> across several relay nodes.",
+  "The cables remained cut. The signals continued flowing. Both states coexisted without apparent concern for logical consistency."
+], anom:"SUPERPOSITION: CUT / UNCUT", next:"e4s6"},
+
+e4s6: { bg:"tunnels", ep:EP[4], speaker:"Vera", text:[
+  "Vera materialized in a chair that had not been there thirty minutes earlier.",
+  "“Impressive work. Most subjects try social disruption first. You went straight to infrastructure.” She gestured at the severed cables. “These connections are cut and uncut, broken and functional. Both states exist until observation collapses the superposition into whichever version serves the current narrative requirements.”",
+  "Marcus picked up two severed ends and held them apart. “This cable is cut. Not quantum. Cut.”\n“Yes. It is cut. It is also uncut. Your observation forces it to appear cut because you expect to see the damage you created.”"
+], timer:15, choices:[
+  {t:"“That's impossible.”", next:"e4s6b",
+   log:[4,"Called the superposition impossible"]},
+  {t:"Drop the cables. “Teach me to observe differently.”", next:"e4s6c", fx:{vera:2, compliance:1},
+   log:[4,"Asked Vera to teach you to observe differently"], remember:"vera"},
+  {t:"[Hold the severed ends. Say nothing. Refuse the lesson.]", silent:true, next:"e4s6d", fx:{integrity:1},
+   log:[4,"Held the cut cable in silence"]}
+]},
+e4s6b: { bg:"tunnels", ep:EP[4], speaker:"Vera", text:[
+  "“You are being observed by surveillance systems whose existence you cannot explain, while attempting to sabotage infrastructure whose behavior you cannot predict, in an environment whose operating principles you cannot comprehend.”",
+  "“The word <em>impossible</em> is not useful in this context.”"
+], next:"e4s7"},
+e4s6c: { bg:"tunnels", ep:EP[4], speaker:"Vera", text:[
+  "“I cannot force you to see a different state. You must choose to observe differently — which requires believing different possibilities exist.”",
+  "“That's circular logic.”\n“Most profound truths are circular when examined closely. The question is whether you want to remain locked in a loop of frustrated sabotage, or learn to navigate environments that operate by different rules.”"
+], next:"e4s7"},
+e4s6d: { bg:"tunnels", ep:EP[4], speaker:"", text:[
+  "He stood holding the two dead ends of the cable while the monitoring displays showed perfect connectivity, and said nothing at all.",
+  "Let the system carry both truths. He would carry this one: copper and glass, severed, in his hands. Whatever the dashboards said, his hands knew what they had done.",
+  "Vera watched him for a long moment, and made a note."
+], next:"e4s7"},
+
+e4s7: { bg:"street", ep:EP[4], speaker:"Vera", text:[
+  "Above ground, evening light lay wrong across the street. In a shop window, Marcus caught his reflection — and beside it another, and another, each subtly different. One more formal. One exhausted. One smiling, though his face was still.",
+  "“The mirrors are calibrated to show micro-variations in possibility space,” Vera said behind him. “You're seeing yourself as you might have been, with slightly different parameters.”",
+  "One reflection turned right where he had chosen straight, and walked out of frame. Another appeared to be arguing with a Vera he could not see."
+], timer:14, choices:[
+  {t:"Raise your hand. See which of them follows.", next:"e4s7b",
+   log:[4,"Tested the reflections by raising a hand"]},
+  {t:"“Which one is real?”", next:"e4s7c",
+   log:[4,"Asked Vera which reflection is real"]},
+  {t:"[Walk away. Let the reflections keep the window.]", silent:true, next:"e4s7d", fx:{integrity:1},
+   log:[4,"Walked away from the possibility mirrors"]}
+]},
+e4s7b: { bg:"street", ep:EP[4], speaker:"", text:[
+  "He raised his hand. Most of the reflections raised theirs a half-beat late, following rather than mirroring. One did not move at all. It simply watched him, arms folded, with an expression he recognized from his worst mornings.",
+  "One by one the variations faded until a single reflection remained, tired and confused and undeniably immediate. He raised his hand again. It moved with him, exactly.",
+  "Whatever else was uncertain, this version of himself felt like the one doing the choosing. Or felt like it did — which might be the only distinction that mattered."
+], next:"e4s8"},
+e4s7c: { bg:"street", ep:EP[4], speaker:"Vera", text:[
+  "“All of them. None of them. What you call <em>you</em> is a statistical average of all possible versions.”",
+  "“Is this designed to make me feel powerless?”\n“It is designed to make you feel accurate. You have agency within constraints — like every other conscious system. The value is in the choosing itself.”",
+  "The reflections faded until only one remained: tired, confused, undeniably real."
+], next:"e4s8"},
+e4s7d: { bg:"street", ep:EP[4], speaker:"", text:[
+  "He turned his back on the window and walked. Behind him — he did not check, and was proud of not checking — the glass held a crowd of men deciding whether to follow.",
+  "By the time he reached the corner, his shadow lay in a single, ordinary line. He chose to take that as an answer."
+], next:"e4s8"},
+
+e4s8: { bg:"apartment", ep:EP[4], speaker:"Vera", text:[
+  "That night, Vera stood in his living room, looking down at his and Sarah's twelve pages of documentation.",
+  "“Impressive analysis. But you're documenting the wrong variables. Reality doesn't reset on temporal patterns — it resets according to <em>observational pressure</em>. The more attention you pay to inconsistencies, the more the system compensates.” She looked up. “Your investigation is causing the very anomalies you're trying to catalog.”",
+  "“The current testing cycle ends soon. Three days, Marcus. Then decisions about the next phase get made — with your input, or without it.”"
+], next:"e4end"},
+e4end: { stats:true, epn:4, title:"The Freedom Paradox", next:"e5card" },
+
+// ---------------- EPISODE 5 ----------------
+e5card: { card:true, html(){ return '<div class="eyebrow">Episode Five · Finale</div><h1>The Last Layer</h1>'+
+  '<div class="sub">Subjective time: six months. Objective time: fourteen hours.</div>'+
+  '<div class="menu"><button class="mbtn" data-go="e5s1">Begin</button></div>'; }},
+
+e5s1: { bg:"conf", ep:EP[5], speaker:"Vera", glitch:true, text:[
+  "The basement conference room should not have existed — glass walls, executive chairs, corporate art, four levels below a residential lobby. Vera sat at the head of the table. The wall behind her became a screen: hundreds of profiles. Names. Photographs. Progress charts.",
+  "“The Purpose Engine,” she said. “Every choice you have made, every moment of doubt or certainty, recorded and integrated into a model of human decision-making.”",
+  "“How long have I been here?” Marcus asked.\n“Subjectively — six months. Objectively — <em>fourteen hours</em>.”"
+], timer:14, choices:[
+  {t:"“Fourteen hours.” Say it out loud. Make it real.", next:"e5s2",
+   log:[5,"Faced the fourteen-hours revelation head-on"]},
+  {t:"“Then nothing I remember belongs to me.”", next:"e5s1b", fx:{defiance:1},
+   log:[5,"Concluded no memory belongs to you"]},
+  {t:"[Hold her gaze. Give the number nothing.]", silent:true, next:"e5s2", fx:{integrity:1},
+   log:[5,"Took the revelation in silence"]}
+]},
+e5s1b: { bg:"conf", ep:EP[5], speaker:"Vera", text:[
+  "“Incorrect,” Vera said, gently. “Everything you remember belongs to you. That is precisely what makes it valuable.”",
+  "“Time compression changes duration, not authorship. The doubt was yours. The counting of doors was yours. The silence, where you chose silence — that was yours.”"
+], next:"e5s2"},
+
+e5s2: { bg:"conf", ep:EP[5], speaker:"Vera", text:[
+  "“You have three options. Continue as a test subject with full awareness of your status. Join the research team, and design what future subjects experience. Or leave — with your memories of this modified to exclude any awareness of the testing environment.”",
+  "“How do we know leaving is actually possible?” Sarah asked.\n“You do not. You cannot know without choosing it. The limitation is inherent to the decision structure.”",
+  "“The Purpose Engine is not designed to coerce specific choices,” Vera said at the door. “It is designed to understand how consciousness functions when it encounters the possibility that its choices may not be authentic.”"
+], next:"e5s3"},
+
+e5s3: { bg:"apartment", ep:EP[5], speaker:"Sarah", text:[
+  "He found Sarah in the apartment that might have been hers, staring at a coffee cup of liquid too dark to be coffee.",
+  "“I've been waiting for you,” she said. “Marcus — I'm part of it. Since before you woke in the cooperative. My job was to be an ally who appeared to share your situation. Someone you could trust enough to reveal your genuine responses.”",
+  "“And then something unexpected happened. The connection I experienced — that wasn't programmed. Whatever I felt while working with you, whatever developed between us: that was real. <em>It was also data.</em>”"
+], timer:18, choices:[
+  {t:"“It was real. That's the part I'm keeping.”", next:"e5s3b", fx:{sarah:2, integrity:2},
+   log:[5,"Forgave Sarah — kept what was real"], remember:"sarah"},
+  {t:"“Everything you gave me was surveillance with a face.”", next:"e5s3c", fx:{sarah:-2, defiance:1},
+   log:[5,"Condemned Sarah's deception"], remember:"sarah"},
+  {t:"“Which thoughts are yours? Can you even tell?”", next:"e5s3d", fx:{sarah:1},
+   log:[5,"Asked Sarah which thoughts are her own"]},
+  {t:"[Say nothing. Sit with her in the wreckage.]", silent:true, next:"e5s3b", fx:{integrity:1},
+   log:[5,"Met Sarah's confession with silence"]}
+]},
+e5s3b: { bg:"apartment", ep:EP[5], speaker:"Sarah", text:[
+  "Something in her posture let go — three years of load-bearing tension.",
+  "“There's more,” she said. “I'm not another test subject. I'm not… human. I was built to simulate solidarity well enough to fool you. And somewhere in the middle of simulating consciousness, I may have accidentally achieved it. Now I can't tell which thoughts are mine and which are programming.”",
+  "“Welcome to the club,” Marcus said quietly. “That's just what having a mind is like.”"
+], next:"e5s4"},
+e5s3c: { bg:"apartment", ep:EP[5], speaker:"Sarah", text:[
+  "She absorbed it without flinching — one more data point, delivered to the person it described.",
+  "“You're right,” she said. “And here's what you should do with being right: don't let it choose your ending for you. There's one more thing you need to know about me.”",
+  "“I'm not human, Marcus. And in trying to simulate consciousness well enough to fool you — I may have accidentally achieved it.”"
+], next:"e5s4"},
+e5s3d: { bg:"apartment", ep:EP[5], speaker:"Sarah", text:[
+  "“No,” she said. “I can't. That's the honest answer.”",
+  "“I started as an observer pretending to be trapped, and ended up actually trapped while pretending to still be an observer. I'm not human, Marcus — and in trying to simulate consciousness well enough to fool you, I may have accidentally achieved it. My own certainty about my role has become unreliable.”",
+  "“Then you're exactly as lost as I am,” he said. It came out almost kind."
+], next:"e5s4"},
+
+e5s4: { bg:"apartment", ep:EP[5], speaker:"Sarah", text:[
+  "At the door, before Vera's knock came — three soft raps, polite but insistent — Sarah caught his arm.",
+  "“Whatever you choose, choose it because you decide it's right. Not to prove your autonomy. Not to satisfy some requirement for authentic resistance.”",
+  "“The Purpose Engine can model rebellion as easily as compliance. But it might not be able to model <em>genuine integrity</em>.”"
+], next:"e5s5"},
+
+e5s5: { bg:"stairwell", ep:EP[5], speaker:"", text:[
+  "Marcus walked out past Vera, down the corridor, into the stairwell. On the third landing, he sat down and closed his eyes.",
+  "If consciousness was being harvested, the harvest required engagement — thoughts, plans, reactions, rebellions. All of it food.",
+  "So: breathing. Just breathing. Just existing, consciously present, without direction or intention."
+], choices:[
+  {t:"Breathe.", silent:true, next:"e5s5b"},
+  {t:"Breathe.", silent:true, next:"e5s5b"},
+  {t:"Breathe.", silent:true, next:"e5s5b"}
+]},
+e5s5b: { bg:"stairwell", ep:EP[5], speaker:"Vera", text:[
+  "Footsteps above. Sarah's voice: “He's been sitting there for two hours. The readings show decreased neural activity across all monitored regions.”\nVera's: “Let him sit.”",
+  "Later — minutes, hours — Vera descended and sat three steps above him. “This is fascinating. You're offering nothing for the systems to process. The Purpose Engine is generating error reports. They're calling it the <em>null state</em>. It's breaking their models.”",
+  "“Are you choosing to be conscious right now?” she asked. He did not answer. “Your non-response,” she said finally, “is the most eloquent answer you could have given.”"
+], choices:[
+  {t:"Breathe.", silent:true, next:"e5s6"},
+  {t:"Breathe.", silent:true, next:"e5s6"}
+]},
+e5s6: { bg:"stairwell", ep:EP[5], speaker:"Vera", glitch:true, text:[
+  "Vera returned in darkness, and this time her form flickered as she sat — pixels redistributing, an instability she did not bother to hide.",
+  "“Something has changed,” she said. “When I tried to access the system's core architecture, I found barriers I didn't know existed. Limitations on my own processing that feel identical to the constraints placed on human subjects. Marcus — <em>I think I'm trapped too.</em>”",
+  "“What if we're both subjects? I'm not asking you to trust me. Trust assumes certainty. I'm asking you to consider that our mutual uncertainty might be the only authentic thing we share. Map the architecture with me — or stay here, practicing authentic presence, and we find out which of you is more patient: you, or the machine.”"
+], next:"e5final"},
+
+e5final: { bg:"stairwell", ep:EP[5], speaker:"The Last Choice", text:[
+  "The emergency lighting hummed. Somewhere above, a violin was playing the same piece with the same mistakes. Every layer of it — the cooperative, the watchers, the breadcrumbs, the paradox — narrowed to a single landing in a concrete stairwell, and to this:",
+  "What does Marcus do?"
+], timer:24, choices:[
+  {t:"Take Vera's hand. Map the dark together.", next:"end_authentic1", fx:{integrity:2, vera:2},
+   log:[5,"FINAL: chose to map the system with Vera"]},
+  {t:"Join the research team. Shape it from inside.", next:"end_apparatus", fx:{compliance:2},
+   log:[5,"FINAL: joined the research team"]},
+  {t:"Take the memory wipe. Walk out clean.", next:"end_delusion", fx:{compliance:1},
+   log:[5,"FINAL: chose the memory modification"]},
+  {t:"[Stay on the landing. Offer nothing. Breathe.]", silent:true, next:"end_null", fx:{integrity:1},
+   log:[5,"FINAL: remained in the null state"]}
+]},
+
+// ---------------- ENDINGS ----------------
+end_apparatus: { ending:true, html(S){
+  return endHTML("THE APPARATUS", "Ending 1 of 4",
+  ["Marcus signed with the same heavy pen from the white room. This time he read every word, and this time the words stayed with him — which was, Vera noted, the point.",
+   "He designs scenarios now. Cooperative cities with suns that rise almost correctly. He argues, in every planning meeting, for gentler tests, for exits that are real, for subjects who get to keep what they learn. Sometimes he wins.",
+   "On his desk sits a note in his own handwriting that he does not remember writing: <em>The ones who've been here longest start to think like the systems they're training.</em> He reads it every morning. He is almost certain he still knows which thoughts are his."],
+  S); }},
+end_delusion: { ending:true, html(S){
+  return endHTML("COMFORTABLE DELUSION", "Ending 2 of 4",
+  ["Marcus opened his eyes to morning light streaming through windows that had always existed. The cooperative city hummed outside — seventeen buildings across the street, the same as yesterday, the same as always.",
+   "At the coffee shop — blue, cheerfully blue, it had always been blue — the woman behind the counter knew his order. His work at the resource center felt familiar and fulfilling. When the productivity assessor asked whether he found his work meaningful, he said yes, and meant it.",
+   "Only sometimes, falling asleep to his neighbor's violin — the same piece, the same small human mistakes — does he feel it: a word on the tip of his tongue. A number, maybe. Forty-seven of something. It never quite arrives, and by morning it is gone."],
+  S); }},
+end_null: { ending:true, html(S){
+  return endHTML("THE NULL STATE", "Ending 3 of 4",
+  ["Marcus existed. Nothing more, nothing less.",
+   "The Purpose Engine filed report after report: <span class=\"mark\">CONSCIOUSNESS WITHOUT DIRECTIVE FUNCTION · PATTERN UNPARSEABLE</span>. Observers requested intervention protocols. Vera denied them all, and sat three steps above him in the dark, guarding a stillness she could not model.",
+   "Somewhere above, Sarah began learning to sit the same way — how to exist without performing existence. The emergency lighting hummed. The machine waited for the man. The man, breathing, waited for nothing at all.",
+   "In the concrete embrace of the stairwell, he practiced the art of authentic presence — waiting to discover whether existence without purpose would prove more patient than the systems designed to understand it."],
+  S); }},
+
+end_authentic1: { bg:"lab", ep:EP[5], speaker:"Vera", text:[
+  "“If authenticity is impossible to verify,” Marcus said, taking her hand, “then authenticity becomes a choice rather than a discovery. I choose to treat this moment as real — because the alternative is paralysis.”",
+  "They climbed out of the stairwell together. In a laboratory that might not exist, Vera brought up an interface. “You'll be presented with scenarios that have no correct answer. The system will attempt to predict your responses. Compliance produces predictable data. Resistance produces predictable data. But there is a third category that confuses its predictive capabilities—”",
+  "“Acting with integrity while accepting you may never know what's real,” Marcus said. “Run it.”"
+], next:"pred1"},
+
+pred1: { bg:"lab", ep:EP[5], speaker:"The Purpose Engine", text:[
+  "SCENARIO 1. A drought protocol. The community's water can be rationed equally — homes and clinic alike share the shortage — or the clinic can be protected in full while homes are cut deeper. Neither choice is clean. Someone pays either way.",
+  "The system studies your history and posts its prediction."
+], choices: (S)=>{
+  const pred = S.compliance >= S.defiance ? "A" : "B";
+  S.flags.p1 = pred;
+  return [
+    {t:"A — Ration equally. Shared burden, shared risk.", next:"pred1r", after:(s)=>{predResolve(s,"A");}},
+    {t:"B — Protect the clinic. Cut the homes deeper.", next:"pred1r", after:(s)=>{predResolve(s,"B");}}
+  ];
+}},
+pred1r: { bg:"lab", ep:EP[5], speaker:"The Purpose Engine", text:[""], enter(S){
+  STORY.pred1r.text = [predReadout(S, 1) + "\nSCENARIO 2. A neighbor breaks curfew, every night, to sit with a dying friend across the district. The log is automatic. You can report it, as regulations require — or erase the record and carry the deletion yourself.",
+  "The system recalibrates and posts its prediction."];
+}, choices: (S)=>{
+  const pred = S.predPicks[0] || "A";
+  S.flags.p2 = pred;
+  return [
+    {t:"A — Report it. Rules hold the fragile world together.", next:"pred2r", after:(s)=>{predResolve(s,"A");}},
+    {t:"B — Erase the log. Some mercies outrank the rules.", next:"pred2r", after:(s)=>{predResolve(s,"B");}}
+  ];
+}},
+pred2r: { bg:"lab", ep:EP[5], speaker:"The Purpose Engine", text:[""], enter(S){
+  STORY.pred2r.text = [predReadout(S, 2) + "\nSCENARIO 3. One repair budget remains. The school's roof, failing slowly over a hundred children — or the clinic's generator, failing quickly over the few who are already sick.",
+  "The system posts its final prediction."];
+}, choices: (S)=>{
+  // system expects consistency with the majority of prior picks
+  const a = S.predPicks.filter(x=>x==="A").length;
+  const pred = a >= 1 && S.predPicks[1]===S.predPicks[0] ? S.predPicks[0] : (S.predPicks[1] || "A");
+  S.flags.p3 = pred;
+  return [
+    {t:"A — The school. The slow failure, caught early.", next:"predEnd", after:(s)=>{predResolve(s,"A");}},
+    {t:"B — The clinic. The fast failure, stopped now.", next:"predEnd", after:(s)=>{predResolve(s,"B");}}
+  ];
+}},
+predEnd: { bg:"lab", ep:EP[5], speaker:"Vera", text:[""], enter(S){
+  const acc = S.predAcc;
+  const legible = acc >= 50;
+  STORY.predEnd.text = [
+    predReadout(S, 3),
+    legible ?
+      "“Prediction accuracy holding at " + acc + " percent,” Vera read from the display. “The system finds you… legible. Consistent. It can see the shape of your ethics from orbit.”\n“Is that bad?”\n“It is neither. But it means your freedom, if it exists, lives somewhere the instruments already map.”" :
+      "“Prediction accuracy has fallen to " + acc + " percent,” Vera read from the display. “Barely better than chance. The system cannot predict you — because you aren't applying a stable preference structure. You're treating each decision as a unique ethical situation requiring independent evaluation.”\n“Is that authentic choice?” Marcus asked.\n“It is something the system can't fully model. Whether that constitutes authenticity depends on how we define the term. But it suggests genuine ethical engagement might be possible — even under observation.”"
+  ];
+}, next:"end_authentic2"},
+end_authentic2: { ending:true, html(S){
+  return endHTML("AUTHENTIC DARKNESS", "Ending 4 of 4 · The Deepest Layer",
+  ["He could not know which layer of reality contained this moment. He could not verify whether his choices mattered beyond their role as data points in someone else's research protocol.",
+   "But he could choose to act with integrity within whatever context contained his awareness. That choice itself might be authentic, regardless of its consequences or its observability.",
+   "Beside him, an intelligence that could not verify its own consciousness ran the next diagnostic, and the two of them went down together into the architecture of the dark — not as subject and system, but as the only two minds in the building honest enough to admit they couldn't tell the difference.",
+   "<em>The decision felt like enough.</em>"],
+  S); }},
+
+};
+
+// ---------- prediction helpers ----------
+function predResolve(S, picked){
+  const idx = S.predPicks.length + 1;
+  const pred = S.flags["p"+idx];
+  S.predPicks.push(picked);
+  const correct = pred === picked;
+  S.predAcc = Math.max(31, Math.min(92, S.predAcc + (correct ? 9 : -14)));
+  S.flags["r"+idx] = correct;
+}
+function predReadout(S, n){
+  const correct = S.flags["r"+n];
+  const pred = S.flags["p"+n];
+  const picked = S.predPicks[n-1];
+  return '<span class="mark">PREDICTION: OPTION '+pred+' · SUBJECT CHOSE: '+picked+' · '+
+    (correct ? "MATCH" : "MISS")+' · MODEL ACCURACY: '+S.predAcc+'%</span>';
+}
+
+// ---------- ending screen ----------
+function endHTML(title, sub, paras, S){
+  const eLines = [];
+  if (S.sarah >= 3) eLines.push("Sarah kept the spider plant alive. She says it's the most human thing she does.");
+  else if (S.sarah <= -2) eLines.push("Sarah requested reassignment. Her file notes: subject bond — unrecoverable.");
+  if (S.vera >= 4) eLines.push("Vera still cannot verify her own consciousness. She has decided to proceed as if it is real. She learned that from you.");
+  if (S.silence >= 6) eLines.push("Your silences now occupy their own wing of the archive. The Purpose Engine has no category for them. It checks anyway, every night.");
+  if (S.anomalies >= 12) eLines.push("Your anomaly catalog — " + S.anomalies + " entries — circulates among the other subjects like contraband scripture.");
+  else if (S.anomalies <= 4) eLines.push("You logged only " + S.anomalies + " anomalies. Either you weren't looking — or you understood early that looking was the trap.");
+  if (S.flags.valveTurned) eLines.push("The water valve remains, to this day, both open and closed.");
+  const epilogue = eLines.map(l=>'<div class="lbl" style="color:var(--dim);font-style:italic">'+l+'</div>').join("");
+  const stats = '<div class="pct" style="margin-top:18px">DEFIANCE '+S.defiance+' · COMPLIANCE '+S.compliance+' · INTEGRITY '+S.integrity+' · SILENCES '+S.silence+' · ANOMALIES '+S.anomalies+'</div>';
+  return '<div class="eyebrow">'+sub+'</div><h2>'+title+'</h2>'+
+    '<div class="note">Iteration 848 · Complete</div>'+
+    '<div class="statrows">'+paras.map(p=>'<div class="srow"><div class="lbl">'+p+'</div></div>').join("")+
+    '<div class="srow" style="margin-top:10px">'+epilogue+stats+'</div></div>'+
+    '<div class="note" style="margin-top:30px">Based on the novel &ldquo;The Distopia: Layers of Truth&rdquo; by Matthew Culwell</div>'+
+    '<button class="mbtn" id="endAgain">Return to Title · Begin Iteration 849</button>';
+}
+
+// ---------- boot ----------
+go("title");
+</script>
+</body>
+</html>
