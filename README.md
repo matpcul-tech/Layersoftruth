@@ -14,6 +14,12 @@ It's a single self-contained file, so it also works hosted anywhere (GitHub Page
 
 - **Five episodes** following the novel's arc: *Surface Tension*, *The Weight of Watchers*,
   *Breadcrumbs and Broken Code*, *The Freedom Paradox*, *The Last Layer*.
+- **Cinematic presentation** — eleven procedurally painted, animated scenes (the cooperative
+  street with its looping identical pedestrians, the diner with metronome rain and a flickering
+  neon sign, the maintenance tunnels, the stairwell) rendered live on canvas, with graphic-novel
+  style character portraits, expressions, and Wolf-Among-Us-style name cards on first appearance.
+- **Synthesized sound** — per-location ambient drones, timer ticks, choice clicks, and anomaly
+  stings, all generated with WebAudio (no audio files). Toggle with the SOUND button.
 - **Timed dialogue choices** — the bar drains, and if you don't speak, Marcus stays silent.
   **Silence is always an option**, it is tracked, and it matters.
 - **"Vera will remember that."** — characters (and the Purpose Engine) log your choices.
@@ -21,7 +27,8 @@ It's a single self-contained file, so it also works hosted anywhere (GitHub Page
   Per the novel: your investigation causes the very anomalies you're trying to catalog.
 - **End-of-episode cohort data** — Telltale-style choice statistics, framed in-fiction as
   comparisons against the other 47 subjects.
-- **A QTE sabotage sequence** (the valve is now both open and closed).
+- **QTE sequences** — the valve sabotage (mash) and the run through the rearranging city
+  (arrow-key prompts), plus a point-and-click investigation of the hidden markings.
 - **The prediction engine finale** — moral dilemmas where the system posts its prediction
   of your choice before you make it, and its model accuracy rises or collapses with you.
 - **Four endings**: The Apparatus · Comfortable Delusion · The Null State · Authentic Darkness.
@@ -42,9 +49,15 @@ title menu for replay.
 
 ## Structure
 
-Everything lives in `index.html`: a small scene-graph engine (~200 lines) and the story
-data (~110 nodes). Scenes are plain objects — text pages, choices with stat effects,
-timers, and branch targets — so adding or editing scenes requires no engine changes.
+Everything lives in `index.html` with zero dependencies and zero external assets:
+
+- a small scene-graph engine (text pages, timed choices, QTEs, hotspots, stat effects)
+- ~115 story nodes as plain data objects
+- procedural canvas painters for each location (animated, deterministic, seeded)
+- SVG character portrait generator (per-character features, four moods)
+- a WebAudio synth for ambience and UI sound
+
+No build step; adding a scene is adding an object to `STORY`.
 
 ---
 
