@@ -14,10 +14,14 @@ It's a single self-contained file, so it also works hosted anywhere (GitHub Page
 
 - **Five episodes** following the novel's arc: *Surface Tension*, *The Weight of Watchers*,
   *Breadcrumbs and Broken Code*, *The Freedom Paradox*, *The Last Layer*.
-- **Cinematic presentation** — eleven procedurally painted, animated scenes (the cooperative
-  street with its looping identical pedestrians, the diner with metronome rain and a flickering
-  neon sign, the maintenance tunnels, the stairwell) rendered live on canvas, with graphic-novel
-  style character portraits, expressions, and Wolf-Among-Us-style name cards on first appearance.
+- **Real-time 3D presentation** (Three.js) — eleven fully 3D environments rendered live with
+  fog, dynamic lights, and shadows: the cooperative street as a canyon of lit towers with the
+  wrong sun hanging at its end and identical pedestrians looping beneath the streetlamps, the
+  diner with metronome rain falling outside the windows and a flickering mirrored neon sign,
+  the maintenance tunnels receding into amber darkness, the stairwell with its swaying bulb
+  casting real shadows. Stylized low-poly characters with expressive drawn faces walk on and
+  off set, and a cinematic camera dollies, sways, pushes in for close-ups on the big beats,
+  and shakes when anomalies register. Wolf-Among-Us-style name cards mark first appearances.
 - **Synthesized sound** — per-location ambient drones, timer ticks, choice clicks, anomaly
   stings, and the neighbor's violin in apartment scenes (the same phrase, the same flat note
   at the same place, the same pause — every time), all generated with WebAudio (no audio
@@ -53,15 +57,15 @@ title menu for replay.
 
 ## Structure
 
-Everything lives in `index.html` with zero dependencies and zero external assets:
+Two files, no build step, no network dependencies:
 
-- a small scene-graph engine (text pages, timed choices, QTEs, hotspots, stat effects)
-- ~115 story nodes as plain data objects
-- procedural canvas painters for each location (animated, deterministic, seeded)
-- SVG character portrait generator (per-character features, four moods)
-- a WebAudio synth for ambience and UI sound
+- `index.html` — the whole game: a small scene-graph engine (text pages, timed choices,
+  QTEs, hotspots, stat effects), ~115 story nodes as plain data objects, eleven procedural
+  Three.js world builders, a low-poly character factory with canvas-drawn expressive faces,
+  a cinematic camera system, and a WebAudio synth for ambience and UI sound
+- `three.min.js` — Three.js r149 (MIT), vendored locally so the game runs offline
 
-No build step; adding a scene is adding an object to `STORY`.
+Adding a scene is adding an object to `STORY`.
 
 ---
 
