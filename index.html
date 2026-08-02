@@ -217,6 +217,11 @@
   /* ---- cinematic layers: scene canvas, cast, namecards, hotspots ---- */
   #bgc{position:absolute;inset:0;width:100%;height:100%;z-index:0}
   #fadeveil{position:absolute;inset:0;background:#05070B;z-index:2;pointer-events:none;opacity:0}
+  /* letterbox bars: slide in during story nodes, out on menus */
+  #lbTop,#lbBot{position:absolute;left:0;right:0;height:0;background:#020304;z-index:3;
+    pointer-events:none;transition:height .55s cubic-bezier(.4,0,.2,1)}
+  #lbTop{top:0}#lbBot{bottom:0}
+  #stage.cine #lbTop{height:5.5vh}#stage.cine #lbBot{height:7vh}
   #cast{position:absolute;inset:0;z-index:4;pointer-events:none}
   .actor{position:absolute;bottom:23%;width:clamp(150px,27vmin,250px);
     transition:opacity .5s, filter .5s, width .8s cubic-bezier(.2,.7,.3,1), bottom .8s cubic-bezier(.2,.7,.3,1),
@@ -304,6 +309,7 @@
   <div id="stage" class="bg-void">
     <canvas id="bgc"></canvas>
     <div id="fadeveil"></div>
+    <div id="lbTop"></div><div id="lbBot"></div>
     <div id="cast"></div>
     <div id="lowerShade"></div>
     <div id="hotzone"></div>
@@ -619,8 +625,9 @@ const FACEMOODS = {
   stern:  {bi:4,  bo:-4, mc:0}
 };
 const HAIRLINES = {vera:"bangs", sarah:"swept", david:"high", assessor:"slick", worker:"slick"};
-function drawFace(c,cfg,mood,style,open){
+function drawFace(c,cfg,mood,style,open,lid,sacX,sacY){
   const m = FACEMOODS[mood]||FACEMOODS.calm;
+  lid = lid||0; sacX = sacX||0; sacY = sacY||0;
   c.clearRect(0,0,256,256);
   c.save();
   c.beginPath(); c.ellipse(128,132,110,120,0,0,7); c.clip();
@@ -636,11 +643,13 @@ function drawFace(c,cfg,mood,style,open){
   else if(style==="slick"){ c.moveTo(0,74); c.quadraticCurveTo(128,36,256,74); c.lineTo(256,0); c.lineTo(0,0); }
   else { c.moveTo(0,68); c.quadraticCurveTo(128,30,256,68); c.lineTo(256,0); c.lineTo(0,0); }
   c.closePath(); c.fill();
-  // eyes
+  // eyes with saccading irises and blinking lids
   const eye=(x)=>{ c.fillStyle="#EDE8DC"; c.beginPath(); c.ellipse(x,138,16,10.5,0,0,7); c.fill();
-    c.fillStyle=cfg.eye; c.beginPath(); c.arc(x,139,7.2,0,7); c.fill();
-    c.fillStyle="#1A140E"; c.beginPath(); c.arc(x,139,3.2,0,7); c.fill();
-    c.fillStyle="rgba(255,255,255,.9)"; c.beginPath(); c.arc(x+2.4,135.5,2.1,0,7); c.fill(); };
+    c.fillStyle=cfg.eye; c.beginPath(); c.arc(x+sacX,139+sacY,7.2,0,7); c.fill();
+    c.fillStyle="#1A140E"; c.beginPath(); c.arc(x+sacX,139+sacY,3.2,0,7); c.fill();
+    c.fillStyle="rgba(255,255,255,.9)"; c.beginPath(); c.arc(x+sacX+2.4,135.5+sacY,2.1,0,7); c.fill();
+    if(lid>0.02){ c.fillStyle=cfg.skin;
+      c.fillRect(x-17,126,34,23*Math.min(1,lid)); } };
   eye(92); eye(164);
   // brows
   c.strokeStyle=cfg.hairC; c.lineWidth=5.5; c.lineCap="round"; c.globalAlpha=.9;
@@ -662,26 +671,177 @@ function drawFace(c,cfg,mood,style,open){
     c.beginPath(); c.moveTo(76,104); c.lineTo(93,97); c.stroke(); }
   c.restore();
 }
+/* ============================================================
+   CLIP DATA - keyframe clips as plain data
+   tracks: bone -> [ [time, rxDeg, ryDeg, rzDeg], ... ]
+   Eased interpolation and crossfade blending in the animator.
+   Bones: hips, spine, chest, neck, head, shL, shR, uaL, uaR,
+   laL, laR, handL, handR, ulL, ulR, llL, llR, footL, footR.
+   ============================================================ */
+const LOT_CLIPS={
+  idle:{dur:4.4, loop:true, tracks:{
+    hips: [[0,0,0,1.4],[2.2,0,0,-1.4],[4.4,0,0,1.4]],
+    chest:[[0,0,0,-1.0],[2.2,0,0,1.0],[4.4,0,0,-1.0]],
+    head: [[0,0,-2,0.7],[1.5,1.5,2,0],[3.0,0,-1,-0.7],[4.4,0,-2,0.7]],
+    uaL:  [[0,0,0,3],[2.2,1.5,0,4.5],[4.4,0,0,3]],
+    uaR:  [[0,0,0,-3],[2.2,1.5,0,-4.5],[4.4,0,0,-3]]
+  }},
+  talk1:{dur:2.2, loop:true, tracks:{
+    uaR:  [[0,-8,0,-5],[0.5,-40,0,-9],[1.0,-18,0,-6],[1.6,-34,0,-11],[2.2,-8,0,-5]],
+    laR:  [[0,-14,0,0],[0.5,-54,0,0],[1.0,-28,0,0],[1.6,-50,0,0],[2.2,-14,0,0]],
+    head: [[0,2,0,0],[0.6,-2,3,0],[1.2,2,-2,0],[2.2,2,0,0]],
+    chest:[[0,1,0,0],[1.1,-1,2,0],[2.2,1,0,0]]
+  }},
+  talk2:{dur:2.6, loop:true, tracks:{
+    uaL:  [[0,-12,0,12],[0.7,-32,0,18],[1.5,-20,0,14],[2.6,-12,0,12]],
+    uaR:  [[0,-12,0,-12],[0.7,-28,0,-20],[1.5,-36,0,-14],[2.6,-12,0,-12]],
+    laL:  [[0,-32,0,0],[0.7,-54,0,0],[1.5,-38,0,0],[2.6,-32,0,0]],
+    laR:  [[0,-32,0,0],[0.7,-42,0,0],[1.5,-58,0,0],[2.6,-32,0,0]],
+    head: [[0,0,2,0],[1.3,2,-3,0],[2.6,0,2,0]]
+  }},
+  talk3:{dur:2.0, loop:true, tracks:{
+    chest:[[0,3,0,0],[0.9,5,-2,0],[2.0,3,0,0]],
+    uaR:  [[0,-26,0,-7],[0.45,-50,0,-9],[0.9,-32,0,-7],[1.4,-54,0,-10],[2.0,-26,0,-7]],
+    laR:  [[0,-32,0,0],[0.45,-26,0,0],[0.9,-46,0,0],[1.4,-24,0,0],[2.0,-32,0,0]],
+    head: [[0,3,0,0],[1.0,1,4,0],[2.0,3,0,0]]
+  }},
+  nod:{dur:0.9, loop:false, tracks:{
+    head:[[0,0,0,0],[0.28,16,0,0],[0.55,-4,0,0],[0.9,0,0,0]],
+    neck:[[0,0,0,0],[0.28,6,0,0],[0.9,0,0,0]]
+  }},
+  shake:{dur:1.05, loop:false, tracks:{
+    head:[[0,0,0,0],[0.25,0,-18,0],[0.55,0,15,0],[0.8,0,-8,0],[1.05,0,0,0]]
+  }},
+  shrug:{dur:1.15, loop:false, tracks:{
+    shL:  [[0,0,0,0],[0.3,0,0,-15],[0.75,0,0,-15],[1.15,0,0,0]],
+    shR:  [[0,0,0,0],[0.3,0,0,15],[0.75,0,0,15],[1.15,0,0,0]],
+    uaL:  [[0,0,0,5],[0.3,-17,0,28],[0.75,-17,0,28],[1.15,0,0,5]],
+    uaR:  [[0,0,0,-5],[0.3,-17,0,-28],[0.75,-17,0,-28],[1.15,0,0,-5]],
+    laL:  [[0,0,0,0],[0.3,-60,0,0],[0.75,-60,0,0],[1.15,0,0,0]],
+    laR:  [[0,0,0,0],[0.3,-60,0,0],[0.75,-60,0,0],[1.15,0,0,0]],
+    head: [[0,0,0,0],[0.3,-4,0,6],[0.75,-4,0,6],[1.15,0,0,0]]
+  }},
+  point:{dur:0.85, loop:false, clamp:true, tracks:{
+    uaR: [[0,0,0,-5],[0.4,-74,0,-7],[0.85,-68,0,-7]],
+    laR: [[0,-10,0,0],[0.4,-6,0,0],[0.85,-9,0,0]],
+    head:[[0,0,0,0],[0.4,4,-4,0],[0.85,3,-3,0]],
+    chest:[[0,0,0,0],[0.4,2,-3,0],[0.85,2,-3,0]]
+  }},
+  armsCrossed:{dur:0.85, loop:false, clamp:true, tracks:{
+    uaL: [[0,0,0,5],[0.45,-38,15,22],[0.85,-36,13,20]],
+    uaR: [[0,0,0,-5],[0.45,-38,-15,-22],[0.85,-36,-13,-20]],
+    laL: [[0,0,0,0],[0.45,-98,30,0],[0.85,-94,28,0]],
+    laR: [[0,0,0,0],[0.45,-98,-30,0],[0.85,-94,-28,0]],
+    chest:[[0,0,0,0],[0.45,-2,0,0],[0.85,-2,0,0]]
+  }},
+  surprised:{dur:0.75, loop:false, clamp:true, tracks:{
+    chest:[[0,0,0,0],[0.18,-9,0,0],[0.5,-5,0,0],[0.75,-5,0,0]],
+    head: [[0,0,0,0],[0.18,-13,0,0],[0.5,-7,0,0],[0.75,-7,0,0]],
+    uaL:  [[0,0,0,5],[0.18,-36,0,24],[0.75,-26,0,15]],
+    uaR:  [[0,0,0,-5],[0.18,-36,0,-24],[0.75,-26,0,-15]],
+    laL:  [[0,0,0,0],[0.18,-42,0,0],[0.75,-30,0,0]],
+    laR:  [[0,0,0,0],[0.18,-42,0,0],[0.75,-30,0,0]]
+  }}
+};
+const LOT_D2R=Math.PI/180;
+function easeSm(t){ return t*t*(3-2*t); }
+function makeAnim(bones){
+  return {
+    bones, cur:"idle", nxt:null, t:Math.random()*4, nt:0, fade:0, fadeDur:0.25,
+    play(name,fade){
+      if(!LOT_CLIPS[name]) return;
+      if(name===this.cur&&!this.nxt) return;
+      this.nxt=name; this.nt=0; this.fade=0; this.fadeDur=fade||0.25;
+    },
+    pose(clipName,t,out){
+      const clip=LOT_CLIPS[clipName]; if(!clip) return;
+      let ct = clip.loop ? t%clip.dur : Math.min(t,clip.dur-0.0001);
+      for(const bn in clip.tracks){
+        const keys=clip.tracks[bn];
+        let a=keys[0], b=keys[keys.length-1];
+        for(let i=0;i<keys.length-1;i++){
+          if(ct>=keys[i][0]&&ct<=keys[i+1][0]){ a=keys[i]; b=keys[i+1]; break; }
+        }
+        const span=Math.max(0.0001,b[0]-a[0]);
+        const k=easeSm(Math.max(0,Math.min(1,(ct-a[0])/span)));
+        if(!out[bn]) out[bn]=[0,0,0];
+        out[bn][0]+=(a[1]+(b[1]-a[1])*k)*LOT_D2R;
+        out[bn][1]+=(a[2]+(b[2]-a[2])*k)*LOT_D2R;
+        out[bn][2]+=(a[3]+(b[3]-a[3])*k)*LOT_D2R;
+      }
+    },
+    update(dt){
+      this.t+=dt;
+      const poseA={}; this.pose(this.cur,this.t,poseA);
+      let mix=poseA;
+      if(this.nxt){
+        this.nt+=dt; this.fade=Math.min(1,this.fade+dt/this.fadeDur);
+        const poseB={}; this.pose(this.nxt,this.nt,poseB);
+        mix={};
+        const names={}; for(const n in poseA)names[n]=1; for(const n in poseB)names[n]=1;
+        const f=easeSm(this.fade);
+        for(const n in names){
+          const a=poseA[n]||[0,0,0], b=poseB[n]||[0,0,0];
+          mix[n]=[a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f, a[2]+(b[2]-a[2])*f];
+        }
+        if(this.fade>=1){ this.cur=this.nxt; this.t=this.nt; this.nxt=null; }
+      } else {
+        const cc=LOT_CLIPS[this.cur];
+        if(cc&&!cc.loop&&!cc.clamp&&this.t>=cc.dur) this.play("idle",0.35);
+      }
+      for(const bn in this.bones) this.bones[bn].rotation.set(0,0,0);
+      for(const bn in mix){ const b=this.bones[bn]; if(b) b.rotation.set(mix[bn][0],mix[bn][1],mix[bn][2]); }
+    }
+  };
+}
+
 function buildChar(id){
   const cfg = CHARS[id] || CHARS.worker;
   const g = new THREE.Group();
   const mats = [];
   const mk=(c,o)=>{ const m=M(c,Object.assign({t:true},o||{})); m.userData.base=new THREE.Color(c); mats.push(m); return m; };
-  const pants = mk("#171B26"), topM = mk(cfg.top), skin = mk(cfg.skin,{r:.75}), hair = mk(cfg.hairC,{r:.6});
-  g.add(cyl(.085,.1,.62,pants,-.11,.31,0)); g.add(cyl(.085,.1,.62,pants,.11,.31,0));
-  g.add(box(.36,.16,.22,pants,0,.66,0));
+  const pants = mk("#171B26"), topM = mk(cfg.top), skin = mk(cfg.skin,{r:.75}),
+        hair = mk(cfg.hairC,{r:.6}), shoe = mk("#10131C");
+  // full bone hierarchy from primitives, same silhouette and materials as before
+  const bones = {};
+  const B=(name,parent,x,y,z)=>{ const o=new THREE.Object3D(); o.position.set(x,y,z);
+    parent.add(o); bones[name]=o; return o; };
+  const put=(parent,mesh2,x,y,z)=>{ mesh2.position.set(x,y,z); parent.add(mesh2); return mesh2; };
+
+  const hips=B("hips",g,0,.66,0);
+  put(hips,box(.36,.16,.22,pants,0,0,0),0,.02,0);
+  const ulL=B("ulL",hips,-.11,-.04,0), ulR=B("ulR",hips,.11,-.04,0);
+  put(ulL,cyl(.085,.092,.30,pants,0,0,0),0,-.15,0);
+  put(ulR,cyl(.085,.092,.30,pants,0,0,0),0,-.15,0);
+  const llL=B("llL",ulL,0,-.30,0), llR=B("llR",ulR,0,-.30,0);
+  put(llL,cyl(.075,.10,.28,pants,0,0,0),0,-.14,0);
+  put(llR,cyl(.075,.10,.28,pants,0,0,0),0,-.14,0);
+  const footL=B("footL",llL,0,-.28,0), footR=B("footR",llR,0,-.28,0);
+  put(footL,box(.10,.05,.17,shoe,0,0,0),0,-.015,.03);
+  put(footR,box(.10,.05,.17,shoe,0,0,0),0,-.015,.03);
+
+  const spine=B("spine",hips,0,.12,0);
+  put(spine,box(.33,.16,.21,topM,0,0,0),0,.06,0);
+  const chest=B("chest",spine,0,.24,0);
   const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.185,.42,6,14),topM);
-  torso.position.y=1.02; torso.scale.set(1,1,.72); g.add(torso);
-  const armL=new THREE.Mesh(new THREE.CapsuleGeometry(.055,.42,4,10),topM);
-  armL.geometry.translate(0,-.21,0);
-  armL.position.set(-.26,1.24,0); armL.rotation.z=.09; g.add(armL);
-  const armR=new THREE.Mesh(armL.geometry,topM);
-  armR.position.set(.26,1.24,0); armR.rotation.z=-.09; g.add(armR);
-  const handL=sph(.055,skin,0,-.44,0); armL.add(handL);
-  const handR=sph(.055,skin,0,-.44,0); armR.add(handR);
-  g.add(cyl(.06,.07,.1,skin,0,1.32,0));
-  // head group so nods and tilts move hair + face together
-  const hg=new THREE.Group(); hg.position.set(0,1.52,0); g.add(hg);
+  torso.scale.set(1,1,.72); put(chest,torso,0,0,0);
+  const shL=B("shL",chest,-.245,.22,0), shR=B("shR",chest,.245,.22,0);
+  const uaL=B("uaL",shL,-.015,0,0), uaR=B("uaR",shR,.015,0,0);
+  const uaGeo=new THREE.CapsuleGeometry(.055,.18,4,10);
+  put(uaL,new THREE.Mesh(uaGeo,topM),0,-.12,0);
+  put(uaR,new THREE.Mesh(uaGeo,topM),0,-.12,0);
+  const laL=B("laL",uaL,0,-.25,0), laR=B("laR",uaR,0,-.25,0);
+  const laGeo=new THREE.CapsuleGeometry(.05,.15,4,10);
+  put(laL,new THREE.Mesh(laGeo,skin),0,-.10,0);
+  put(laR,new THREE.Mesh(laGeo,skin),0,-.10,0);
+  const handL=B("handL",laL,0,-.225,0), handR=B("handR",laR,0,-.225,0);
+  put(handL,sph(.055,skin,0,0,0),0,-.01,0);
+  put(handR,sph(.055,skin,0,0,0),0,-.01,0);
+  uaL.rotation.z=.09; uaR.rotation.z=-.09;
+
+  const neck=B("neck",chest,0,.32,0);
+  put(neck,cyl(.06,.07,.1,skin,0,0,0),0,-.02,0);
+  const hg=B("head",neck,0,.18,0);
   const head=sph(.165,skin,0,0,0); head.scale.set(.94,1.12,.9); hg.add(head);
   if(id==="vera"){
     const cap=sph(.18,hair,0,.03,-.01,{tl:Math.PI*0.55}); cap.scale.set(1,1,.85); hg.add(cap);
@@ -708,11 +868,17 @@ function buildChar(id){
   const rim=new THREE.PointLight(cfg.rim,.7,2.6); rim.position.set(.5,1.8,-.5); g.add(rim);
   g.traverse(o=>{ if(o.isMesh) o.castShadow=true; });
   return {group:g, mats, rim, fctx, ftex, cfg, style:HAIRLINES[id]||"short",
-    headGrp:hg, armR, armL, mood:"calm", _open:false,
-    setMood(mood){ this.mood=mood; this._open=false;
-      drawFace(this.fctx,this.cfg,mood,this.style,false); this.ftex.needsUpdate=true; },
-    setMouth(open){ this._open=open;
-      drawFace(this.fctx,this.cfg,this.mood,this.style,open); this.ftex.needsUpdate=true; },
+    bones, anim:makeAnim(bones),
+    headGrp:hg, armR:uaR, armL:uaL, mood:"calm", _open:false,
+    blinkT:-1, blinkNext:2+Math.random()*4, sacT:0, sacX:0, sacY:0,
+    lookW:0, lookYaw:0, lookPitch:0, lookTarget:null,
+    refreshFace(){
+      const lid = this.blinkT>=0 ? Math.sin(Math.min(1,this.blinkT/0.13)*Math.PI) : 0;
+      drawFace(this.fctx,this.cfg,this.mood,this.style,this._open,lid,this.sacX,this.sacY);
+      this.ftex.needsUpdate=true;
+    },
+    setMood(mood){ this.mood=mood; this._open=false; this.refreshFace(); },
+    setMouth(open){ this._open=open; this.refreshFace(); },
     setDim(d){ this.mats.forEach(m=>{ m.color.copy(m.userData.base).multiplyScalar(d?0.38:1); }); this.rim.intensity=d?0.15:0.7; },
     setAlpha(a){ this.mats.forEach(m=>{ m.opacity=a; }); this.rim.intensity=Math.min(.7,a*.7); }
   };
@@ -1025,20 +1191,25 @@ function renderLoop(nowMs){
   const t = RM ? 0 : nowMs/1000;
   if (world.update) world.update(t);
   updateCast3d(t, dt);
-  const cu = closeupId && castMap[closeupId] && castMap[closeupId].ch;
-  if (cu){
-    const p = castMap[closeupId].ch.group.position;
-    _goalPos.set(p.x*0.45, 1.62, p.z+1.5);
-    _goalLook.set(p.x*0.85, 1.5, p.z);
-  } else { _goalPos.copy(world.cam.pos); _goalLook.copy(world.cam.look); }
+  // director camera: hard cut on shot change, slow push-in within a shot
+  curShot.time += dt;
+  const sg = shotGoal();
+  _goalPos.copy(sg.pos); _goalLook.copy(sg.look);
+  const drift = Math.min(curShot.time*0.05, 0.3);
+  const fwd = _goalLook.clone().sub(_goalPos).normalize();
+  _goalPos.addScaledVector(fwd, drift);
+  goalFov = sg.fov;
   if (!RM){ _goalPos.x += Math.sin(t*.3)*.06; _goalPos.y += Math.sin(t*.23)*.03; }
   if (nowMs < glitchUntil){ _goalPos.x += (Math.random()-.5)*.12; _goalPos.y += (Math.random()-.5)*.08; }
   const k = snapCam ? 1 : 1 - Math.pow(0.955, dt*60);
-  camera.position.lerp(_goalPos, k); camLook.lerp(_goalLook, k); snapCam = false;
+  camera.position.lerp(_goalPos, k); camLook.lerp(_goalLook, k);
+  if (snapCam) camera.fov = goalFov; else camera.fov += (goalFov - camera.fov) * k;
+  camera.updateProjectionMatrix();
+  snapCam = false;
   camera.lookAt(camLook);
   // rack focus to the current subject; open the aperture during close-ups
   bokehPass.uniforms["focus"].value = camera.position.distanceTo(camLook);
-  const apGoal = cu ? 0.00032 : 0.00009;
+  const apGoal = curShot.name === "cu" ? 0.00032 : curShot.name === "osh" ? 0.00020 : 0.00009;
   bokehPass.uniforms["aperture"].value += (apGoal - bokehPass.uniforms["aperture"].value) * 0.06;
   composer.render();
 }
@@ -1152,9 +1323,11 @@ function removeRec(id){
   if (rec.ch.group.parent) rec.ch.group.parent.remove(rec.ch.group);
   delete castMap[id];
 }
-function castClear(){ Object.keys(castMap).forEach(removeRec); closeupId = null; }
+function castClear(){ Object.keys(castMap).forEach(removeRec); closeupId = null;
+  castOrder = []; curShot = { name:"wide", actor:null, time:0 }; }
 function renderCast(nodeId){
   const list = CAST[nodeId] || [];
+  castOrder = list.map(e=>e[0]);
   const want = {}; list.forEach(e=>{ want[e[0]] = true; });
   Object.keys(castMap).forEach(id=>{
     if (!want[id]) castMap[id].exiting = true;
@@ -1167,19 +1340,40 @@ function renderCast(nodeId){
     } else {
       if (rec) removeRec(id);
       castMap[id] = spawnActor(id, pos, mood);
+      castMap[id].ch.lookTarget = ()=>camera.position;
       if (NAMECARDS[id] && !S.flags["met_"+id]){
         S.flags["met_"+id] = true; showNamecard(NAMECARDS[id]);
       }
     }
   });
 }
-function setTalking(spk, text){
+const TALK_CLIPS = ["talk1","talk2","talk3"];
+let talkClipIdx = 0;
+function setTalking(spk, text, forcedClip){
   const s = (spk||"").toLowerCase();
   const now = performance.now();
+  let speakerRec = null;
   Object.values(castMap).forEach(rec=>{
     const keys = NAME_KEYS[rec.id] || [];
     const match = s && keys.some(k=>s.includes(k));
     rec.talkUntil = match ? now + Math.min(7500, 1400 + (text ? text.length : 0) * 22) : 0;
+    if (match) speakerRec = rec;
+  });
+  Object.values(castMap).forEach(rec=>{
+    if (rec.exiting) return;
+    if (rec === speakerRec){
+      const clip = forcedClip || TALK_CLIPS[(talkClipIdx++) % TALK_CLIPS.length];
+      rec.ch.anim.play(clip, 0.28);
+      // the speaker addresses the player: look toward camera
+      rec.ch.lookTarget = ()=>camera.position;
+    } else {
+      const cc = rec.ch.anim.cur;
+      if (cc && cc.indexOf("talk") === 0) rec.ch.anim.play("idle", 0.4);
+      // listeners turn their attention to the active speaker
+      rec.ch.lookTarget = speakerRec
+        ? ()=>speakerRec.ch.bones.head.getWorldPosition(new THREE.Vector3())
+        : ()=>camera.position;
+    }
   });
 }
 function updateCast3d(t, dt){
@@ -1199,19 +1393,49 @@ function updateCast3d(t, dt){
     g.rotation.y = Math.atan2(camera.position.x - g.position.x, camera.position.z - g.position.z);
     const ph = id.charCodeAt(0);
     g.position.y = Math.sin(t*1.1 + ph) * 0.012;
-    // dialogue performance: nods, tilts, a beat gesture, mouth flap
+    // keyframe layer: current clip pose with crossfade
+    ch.anim.update(dt);
+    // procedural life layer, always on
+    ch.bones.chest.rotation.x += Math.sin(t*1.8+ph)*0.022 + 0.012;   // breathing
+    ch.bones.spine.rotation.x += Math.sin(t*1.8+ph)*0.010;
+    let faceDirty = false;
+    if (ch.blinkT >= 0){                                             // blink in progress
+      ch.blinkT += dt; faceDirty = true;
+      if (ch.blinkT > 0.13){ ch.blinkT = -1; ch.blinkNext = 2 + Math.random()*4; }
+    } else {
+      ch.blinkNext -= dt;
+      if (ch.blinkNext <= 0){ ch.blinkT = 0; faceDirty = true; }
+    }
+    ch.sacT -= dt;                                                   // eye saccades
+    if (ch.sacT <= 0){
+      ch.sacT = 0.7 + Math.random()*1.8;
+      ch.sacX = (Math.random()*2-1)*3.2; ch.sacY = (Math.random()*2-1)*1.5;
+      faceDirty = true;
+    }
+    // damped head look-at toward the active speaker (or the camera)
+    let wy = 0, wp = 0, w = 0;
+    const tp = ch.lookTarget ? ch.lookTarget() : null;
+    if (tp){
+      const dx = tp.x - g.position.x, dz = tp.z - g.position.z;
+      let ny = Math.atan2(dx, dz) - g.rotation.y;
+      while (ny > Math.PI) ny -= Math.PI*2; while (ny < -Math.PI) ny += Math.PI*2;
+      wy = Math.max(-0.6, Math.min(0.6, ny));
+      wp = Math.max(-0.3, Math.min(0.25, -Math.atan2((tp.y||1.5)-1.5, Math.hypot(dx,dz))));
+      w = 1;
+    }
+    ch.lookW += (w - ch.lookW) * Math.min(1, dt*3);
+    ch.lookYaw += (wy - ch.lookYaw) * Math.min(1, dt*4.5);
+    ch.lookPitch += (wp - ch.lookPitch) * Math.min(1, dt*4.5);
+    ch.bones.head.rotation.y += ch.lookYaw * ch.lookW;
+    ch.bones.head.rotation.x += ch.lookPitch * ch.lookW;
+    ch.bones.neck.rotation.y += ch.lookYaw * ch.lookW * 0.35;
+    // lip flap while a line is active, duration from text length
     const talking = rec.talkUntil && now < rec.talkUntil && !rec.exiting;
     if (talking){
-      ch.headGrp.rotation.x += (Math.sin(t*2.4+ph)*0.055 - ch.headGrp.rotation.x) * 0.12;
-      ch.headGrp.rotation.z += (Math.sin(t*1.5+ph)*0.035 - ch.headGrp.rotation.z) * 0.12;
-      ch.armR.rotation.x += ((-.3 - .18*Math.sin(t*2.1+ph)) - ch.armR.rotation.x) * 0.07;
       const open = Math.floor(now/135) % 3 !== 0 && Math.sin(now/70+ph) > -0.6;
-      if (open !== ch._open) ch.setMouth(open);
-    } else {
-      ch.headGrp.rotation.x *= 0.9; ch.headGrp.rotation.z *= 0.9;
-      ch.armR.rotation.x *= 0.92;
-      if (ch._open) ch.setMouth(false);
-    }
+      if (open !== ch._open){ ch._open = open; faceDirty = true; }
+    } else if (ch._open){ ch._open = false; faceDirty = true; }
+    if (faceDirty) ch.refreshFace();
   });
 }
 // cinematic close-ups on the big beats
@@ -1229,8 +1453,80 @@ const CLOSEUPS = {
   end_authentic1:"vera",
   predEnd:"vera"
 };
-function applyCloseup(nodeId){
-  closeupId = CLOSEUPS[nodeId] || null;
+/* ============================================================
+   DIRECTOR - named shots, hard cuts, slow drift, letterbox
+   Shots: wide, two (two-shot), osh (over-shoulder toward the
+   actor), cu (close-up). A and B variants come from which actor
+   the beat names. DIR entries override the auto director.
+   ============================================================ */
+let castOrder = [];
+let curShot = { name:"wide", actor:null, time:0 };
+let goalFov = 38;
+function setShot(name, actor){
+  if (curShot.name === name && curShot.actor === actor) return;
+  curShot = { name, actor: actor||null, time: 0 };
+  snapCam = true; // hard cut
+}
+function actorHead(id){
+  const rec = castMap[id];
+  if (!rec) return null;
+  return rec.ch.bones.head.getWorldPosition(new THREE.Vector3());
+}
+function shotGoal(){
+  const aId = (curShot.actor && castMap[curShot.actor]) ? curShot.actor : castOrder[0];
+  const bId = castOrder.find(x=>x!==aId && castMap[x]);
+  const A = aId ? actorHead(aId) : null;
+  const B = bId ? actorHead(bId) : null;
+  let name = curShot.name;
+  if (!A) name = "wide";
+  if (name === "osh" && !B) name = "cu";
+  switch(name){
+    case "cu": {
+      const p = castMap[aId].ch.group.position;
+      return { pos:new THREE.Vector3(p.x*0.45, 1.62, p.z+1.5),
+               look:new THREE.Vector3(p.x*0.85, 1.5, p.z), fov:30 };
+    }
+    case "osh": {
+      const dir = A.clone().sub(B); dir.y = 0; dir.normalize();
+      const perp = new THREE.Vector3(-dir.z, 0, dir.x);
+      const pos = B.clone().addScaledVector(dir, -0.55).addScaledVector(perp, 0.42);
+      pos.y = 1.66;
+      return { pos, look:A.clone(), fov:33 };
+    }
+    case "two": {
+      const mid = B ? A.clone().add(B).multiplyScalar(0.5) : A.clone();
+      return { pos:new THREE.Vector3(mid.x*0.4, 1.58, mid.z+2.7),
+               look:new THREE.Vector3(mid.x, 1.45, mid.z), fov:36 };
+    }
+    default:
+      return { pos:world.cam.pos.clone(), look:world.cam.look.clone(), fov:38 };
+  }
+}
+const DIR = {}; // node -> {shot,actor,clip,emotion} or per-page array; filled after STORY
+function speakerActor(spk){
+  const s = (spk||"").toLowerCase();
+  for (const id of castOrder){
+    const keys = NAME_KEYS[id] || [];
+    if (s && keys.some(k=>s.includes(k))) return id;
+  }
+  return null;
+}
+function applyDirection(nodeId, pageIdx, spk){
+  let d = DIR[nodeId];
+  if (Array.isArray(d)) d = d[Math.min(pageIdx, d.length-1)];
+  const spkA = speakerActor(spk);
+  let shot = d && d.shot, actor = (d && d.actor) || null;
+  if (!shot){
+    if (CLOSEUPS[nodeId]){ shot = "cu"; actor = CLOSEUPS[nodeId]; }
+    else if (spkA){
+      shot = castOrder.length > 1 ? (pageIdx % 2 ? "osh" : "two")
+                                  : (pageIdx % 2 ? "cu" : "two");
+    } else shot = "wide";
+  }
+  if (!actor) actor = spkA || castOrder[0] || null;
+  setShot(shot, actor);
+  if (d && d.emotion && spkA && castMap[spkA]) castMap[spkA].ch.setMood(d.emotion);
+  return d;
 }
 
 function highlightCast(spk){
@@ -1243,7 +1539,7 @@ function highlightCast(spk){
   Object.values(castMap).forEach(rec=>{
     const keys = NAME_KEYS[rec.id] || [];
     const match = s && keys.some(k=>s.includes(k));
-    rec.ch.setDim(any && !match && rec.id !== closeupId && !rec.exiting);
+    rec.ch.setDim(any && !match && rec.id !== curShot.actor && !rec.exiting);
   });
 }
 
@@ -1264,12 +1560,11 @@ function go(id){
   if (n.stats)  { renderStats(n); save(); return; }
   if (n.ending) { renderEnding(n); save(); return; }
   overlay.innerHTML = "";
-  stage.className = "bg-" + (n.bg || "void");
+  stage.className = "bg-" + (n.bg || "void") + " cine";
   $("hudEp").textContent = n.ep || "";
   setWorld(n.bg || "void");
   AU.ambient(curBg);
   renderCast(id);
-  applyCloseup(id);
   $("hotzone").innerHTML = "";
   stage.classList.toggle("alarm", !!n.alarm);
   updateAtt();
@@ -1291,27 +1586,65 @@ function renderPage(){
                          spk.toLowerCase().includes("engine")||spk.toLowerCase().includes("system") ? "system" : "narr") : "narr";
   highlightCast(spk);
   const chunk = n.text[page];
-  setTalking(spk, chunk.replace(/<[^>]+>/g,""));
-  textEl.innerHTML = chunk.split("\n").map(p=>"<p>"+p+"</p>").join("");
+  const plain = chunk.replace(/<[^>]+>/g,"");
+  const d = applyDirection(cur, page, spk);
+  setTalking(spk, plain, d && d.clip);
   choicesEl.innerHTML = "";
   timerWrap.style.display = "none";
   $("qte").style.display = "none";
   $("sqte").style.display = "none";
   $("hotzone").innerHTML = "";
-  const last = page >= n.text.length - 1;
-  if (!last){ moreEl.style.display = "block"; return; }
   moreEl.style.display = "none";
-  if (n.qte){ runQTE(n); return; }
-  if (n.sqte){ runSeq(n); return; }
-  if (n.hold){ runHold(n); return; }
-  if (n.explore){ renderExplore(n); return; }
-  if (n.choices){ renderChoices(n); }
-  else if (n.next){ moreEl.style.display = "block"; }
+  const last = page >= n.text.length - 1;
+  beginType(chunk, plain, ()=>{
+    if (!last){ moreEl.style.display = "block"; return; }
+    if (n.qte){ runQTE(n); return; }
+    if (n.sqte){ runSeq(n); return; }
+    if (n.hold){ runHold(n); return; }
+    if (n.explore){ renderExplore(n); return; }
+    if (n.choices){ renderChoices(n); }
+    else if (n.next){ moreEl.style.display = "block"; }
+  });
+}
+// ---------- typewriter: tap to complete the line, tap again to advance ----------
+let typeState = null;
+function clearType(){ if (typeState && typeState.timer) clearInterval(typeState.timer); typeState = null; }
+function beginType(full, plain, onDone){
+  clearType();
+  const paras = plain.split("\n");
+  const total = plain.length;
+  const esc = s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  const st = { done:false, shown:0, timer:null };
+  st.finish = ()=>{
+    if (st.done) return;
+    st.done = true;
+    if (st.timer) clearInterval(st.timer);
+    textEl.innerHTML = full.split("\n").map(p=>"<p>"+p+"</p>").join("");
+    onDone && onDone();
+  };
+  typeState = st;
+  if (RM || total < 4){ st.finish(); return; }
+  const renderPartial = ()=>{
+    let left = st.shown, html = "";
+    for (const p of paras){
+      if (left <= 0) break;
+      html += "<p>"+esc(p.slice(0, left))+"</p>";
+      left -= p.length + 1;
+    }
+    textEl.innerHTML = html || "<p></p>";
+  };
+  renderPartial();
+  st.timer = setInterval(()=>{
+    st.shown = Math.min(total, st.shown + 2);
+    renderPartial();
+    if (st.shown >= total) st.finish();
+  }, 24);
 }
 function nx(v){ return typeof v === "function" ? v(S) : v; }
 function advance(){
   const n = STORY[cur];
   if (!n || n.card || n.stats || n.ending || holdActive) return;
+  if (typeState && !typeState.done){ typeState.finish(); return; }
   if (page < n.text.length - 1){ page++; renderPage(); }
   else if (!n.choices && !n.qte && !n.hold && !n.explore && n.next){ go(nx(n.next)); }
 }
@@ -1500,8 +1833,9 @@ function runSeq(n){
 // ---------- special screens ----------
 function clearScene(){
   choicesEl.innerHTML = ""; textEl.innerHTML = ""; speakerEl.textContent = "";
-  moreEl.style.display = "none"; clearTimer();
+  moreEl.style.display = "none"; clearTimer(); clearType();
   castClear();
+  stage.classList.remove("cine");
   $("hotzone").innerHTML = "";
   $("sqte").style.display = "none";
 }
@@ -2360,6 +2694,38 @@ end_authentic2: { ending:true, html(S){ return endHTML("Authentic Darkness","END
     li1:"vera",       // the last iteration
     sf2:"sarah",      // "they only come with one name"
     fin1:"vera"       // the choice
+  });
+  /* ============================================================
+     DIRECTED SCENE: Episode 1, "The Harvest Question"
+     Full shot-by-shot direction for the office and assessor
+     sequence (of1 through as5). Per page: {shot, actor, clip,
+     emotion}. Ten beats, two timed choices, and the davidExposed
+     flag decides the final beat here and the van scene tonight.
+     Every other node uses the auto director.
+     ============================================================ */
+  Object.assign(DIR, {
+    of1:  [ {shot:"wide"},
+            {shot:"two", actor:"david"} ],
+    of2:  [ {shot:"osh", actor:"david", clip:"talk1", emotion:"smile"},
+            {shot:"cu",  actor:"david", emotion:"smile"} ],
+    of3a: [ {shot:"two", actor:"david", clip:"nod", emotion:"smile"} ],
+    of3b: [ {shot:"cu",  actor:"david", clip:"surprised", emotion:"concern"} ],
+    of3b2:[ {shot:"wide", actor:"david"} ],
+    of3c: [ {shot:"cu",  actor:"david", emotion:"concern"},
+            {shot:"cu",  actor:"david", clip:"shake", emotion:"concern"} ],
+    of4:  [ {shot:"wide"} ],
+    as1:  [ {shot:"wide", actor:"assessor"},
+            {shot:"osh",  actor:"assessor", clip:"point", emotion:"stern"} ],
+    as2:  [ {shot:"cu",   actor:"assessor", clip:"talk3", emotion:"stern"} ],
+    as3a: [ {shot:"osh",  actor:"assessor", clip:"nod", emotion:"calm"} ],
+    as3b: [ {shot:"cu",   actor:"assessor", clip:"point", emotion:"stern"} ],
+    as3c: [ {shot:"two",  actor:"assessor", clip:"armsCrossed", emotion:"calm"} ],
+    as4:  [ {shot:"two",  actor:"assessor", clip:"armsCrossed", emotion:"stern"},
+            {shot:"cu",   actor:"assessor", clip:"point", emotion:"stern"} ],
+    as5a: [ {shot:"cu",   actor:"assessor", clip:"shake", emotion:"calm"} ],
+    as5b: [ {shot:"cu",   actor:"assessor", clip:"nod", emotion:"smile"} ],
+    as5c: [ {shot:"two",  actor:"assessor", clip:"shrug", emotion:"stern"} ],
+    n2x:  [ {shot:"two",  actor:"david", clip:"nod", emotion:"calm"} ]
   });
 })();
 

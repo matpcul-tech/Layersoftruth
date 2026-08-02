@@ -34,8 +34,16 @@ It's a single self-contained file, so it also works hosted anywhere (GitHub Page
   casting real shadows. Stylized low-poly characters with expressive drawn faces walk on and
   off set, and a cinematic camera dollies, sways, pushes in for close-ups on the big beats,
   and shakes when anomalies register. Wolf-Among-Us-style name cards mark first appearances.
-- **Dialogue performance** — characters nod, tilt, and gesture while their lines play, with
-  animated mouth flaps synced to speech duration; everything relaxes when the line ends.
+- **Dialogue performance** — characters are built on a full bone hierarchy (hips to feet)
+  and act their lines from a keyframe clip library (idle with weight shift, three talk
+  gestures, nod, head shake, shrug, point, arms crossed, surprised recoil) with eased
+  interpolation and crossfade blending. A procedural life layer runs on top: breathing,
+  randomized blinks every 2 to 6 seconds, eye saccades, damped head look-at toward the
+  active speaker, and mouth flaps timed to line length.
+- **A film director** — named shots (wide, two-shot, over-shoulder, close-up) with hard
+  cuts between shots and slow push-in drift within them, letterbox bars during story
+  scenes, typewriter dialogue with speaker plates (tap to complete, tap to advance), and
+  a fully hand-directed Episode 1 sequence: the harvest question.
 - **Cinematic post-processing** — depth of field racks focus to the current subject and opens
   the aperture during close-ups, with bloom on neon and highlights and filmic gamma grading.
 - **Synthesized sound** — per-location ambient drones, timer ticks, choice clicks, anomaly
