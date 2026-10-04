@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Distopia: Layers of Truth — A Narrative Adventure</title>
+<title>The Distopia: Layers of Truth | A Free Narrative Adventure Game</title>
+<meta name="description" content="A free Telltale-style narrative adventure based on the dystopian novel Dystopia: Layers of Truth by Matthew Culwell. Timed choices, four endings, plays in your browser.">
+<meta property="og:title" content="The Distopia: Layers of Truth | Free Narrative Adventure">
+<meta property="og:description" content="Play the free choice-driven game based on the novel Dystopia: Layers of Truth by Matthew Culwell.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230A0D14'/%3E%3Ccircle cx='32' cy='32' r='14' fill='none' stroke='%23C0503C' stroke-width='4'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23C0503C'/%3E%3C/svg%3E">
 <style>
   /* ============ PURPOSE ENGINE MONITORING OVERLAY ============
      Single committed theme: dark cinematic (letterboxed game screen).
@@ -55,7 +60,7 @@
   }
   #stage::after{
     content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
-    box-shadow:inset 0 0 180px 60px rgba(0,0,0,0.75);
+    box-shadow:inset 0 0 140px 30px rgba(0,0,0,0.5);
   }
 
   /* viewfinder corner brackets */
@@ -71,7 +76,7 @@
     position:absolute;top:12px;left:0;right:0;z-index:20;
     display:flex;justify-content:space-between;align-items:flex-start;
     padding:0 52px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;
-    color:var(--faint);text-transform:uppercase;pointer-events:none;
+    color:var(--dim);text-transform:uppercase;pointer-events:none;
   }
   #hud .rec{display:flex;align-items:center;gap:7px;color:var(--dim)}
   #hud .dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:blink 1.6s infinite}
@@ -84,6 +89,12 @@
     position:relative;z-index:10;width:min(66ch,92%);margin:0 auto;
     padding:0 0 22px;
   }
+  /* translucent panel behind dialogue and choices so text never sits on a busy set */
+  #scene.panel{padding:16px 22px 18px;margin-bottom:14px;
+    background:linear-gradient(180deg, rgba(7,9,14,.62), rgba(7,9,14,.8));
+    border:1px solid rgba(160,180,210,.08);border-radius:3px;
+    -webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);box-shadow:0 10px 40px rgba(0,0,0,.45)}
+  @media (max-width:640px){ #scene.panel{padding:12px 14px 12px;margin-bottom:10px} #scene.panel #text{min-height:3.6em} #scene.panel #more{margin-top:8px} }
   #speaker{
     font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;
     margin-bottom:10px;color:var(--amber);min-height:15px;
@@ -125,8 +136,8 @@
   .choice.silent{color:var(--dim);font-style:italic}
   .choice.silent:hover,.choice.silent:focus-visible{color:#BDBDC4;border-left-color:var(--cyan)}
   .choice kbd{
-    font-family:var(--mono);font-size:10px;color:var(--faint);margin-right:10px;
-    border:1px solid var(--faint);padding:1px 5px;border-radius:2px;
+    font-family:var(--mono);font-size:10px;color:var(--dim);margin-right:10px;
+    border:1px solid var(--dim);padding:1px 5px;border-radius:2px;
   }
 
   /* timer */
@@ -181,7 +192,7 @@
   .mbtn:hover,.mbtn:focus-visible{border-color:var(--amber);color:var(--amber);outline:none}
   .mbtn[disabled]{opacity:.3;cursor:default}
   .mbtn[disabled]:hover{border-color:#2A3247;color:var(--paper)}
-  .card .credit{position:absolute;bottom:56px;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.14em}
+  .card .credit{position:absolute;bottom:56px;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em}
   .card .credit a{color:var(--dim)}
 
   /* episode stats screen */
@@ -243,7 +254,7 @@
   .actor.closeup svg{filter:drop-shadow(0 22px 40px rgba(0,0,0,.8))}
   #lowerShade{position:absolute;left:0;right:0;bottom:0;height:48%;z-index:5;pointer-events:none;
     background:linear-gradient(180deg, transparent, rgba(5,7,11,.5) 32%, rgba(5,7,11,.93))}
-  #namecard{position:absolute;left:52px;bottom:27%;z-index:25;opacity:0;transition:opacity .6s;pointer-events:none}
+  #namecard{position:absolute;left:52px;top:15%;z-index:25;opacity:0;transition:opacity .6s;pointer-events:none}
   #namecard.show{opacity:1}
   #namecard .nc-name{font-family:var(--mono);font-size:clamp(19px,3.2vmin,28px);letter-spacing:.32em;color:var(--paper);text-shadow:0 2px 14px rgba(0,0,0,.9)}
   #namecard .nc-role{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--cyan);margin-top:7px;text-transform:uppercase}
@@ -289,7 +300,70 @@
     .actor.posL{left:3%}.actor.posR{right:3%}
     .actor.closeup{width:clamp(190px,58vmin,290px);bottom:16%}
     .actor.closeup.posL{left:2%}.actor.closeup.posR{right:2%}
-    #namecard{left:20px;bottom:33%}
+    #namecard{left:20px;top:12%;bottom:auto}
+  }
+
+
+  /* ============ PLAYABILITY LAYER (menu, settings, history, help, links) ============ */
+  #more{display:none;background:none;border:none;padding:10px 0 4px;min-height:40px;text-align:left;width:100%}
+  #more:focus-visible{outline:1px solid var(--amber);outline-offset:2px}
+  #topCtl{position:absolute;top:8px;right:10px;z-index:58;display:flex;gap:8px}
+  #topCtl button{pointer-events:auto;background:rgba(10,13,20,.85);border:1px solid #2A3247;color:var(--paper);
+    font-family:var(--mono);font-size:11px;letter-spacing:.18em;padding:0 14px;min-height:44px;min-width:44px;cursor:pointer;text-transform:uppercase}
+  #topCtl button:hover,#topCtl button:focus-visible{border-color:var(--amber);color:var(--amber);outline:none}
+  #topCtl.hidden{display:none}
+  #hud{padding-right:220px}
+  #menuLayer{position:absolute;inset:0;z-index:70;display:none;align-items:center;justify-content:center;
+    background:rgba(3,5,9,.86);backdrop-filter:blur(3px);padding:20px}
+  #menuLayer.open{display:flex}
+  .panel{width:min(520px,100%);max-height:100%;overflow-y:auto;background:var(--panel);border:1px solid #2A3247;
+    padding:26px 24px;font-family:var(--sans);color:var(--paper)}
+  .panel h2{font-family:var(--mono);font-size:13px;letter-spacing:.32em;text-transform:uppercase;color:var(--cyan);margin-bottom:18px;font-weight:400}
+  .panel .mbtn{display:block;width:100%;margin-top:10px;text-align:center}
+  .panel p,.panel li{font-size:15px;line-height:1.6;color:var(--paper)}
+  .panel ul{padding-left:18px;margin:6px 0 4px}.panel li{margin:6px 0}
+  .panel .muted{color:var(--dim);font-size:13px}
+  .panel kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--dim);padding:0 5px;border-radius:2px;color:var(--paper)}
+  .setrow{display:flex;flex-direction:column;gap:8px;margin:14px 0}
+  .setrow .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+  .seg{display:flex;flex-wrap:wrap;gap:6px}
+  .seg button{flex:1 1 auto;min-height:44px;background:none;border:1px solid #2A3247;color:var(--paper);
+    font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;padding:0 10px}
+  .seg button[aria-pressed="true"]{border-color:var(--amber);color:var(--amber);background:rgba(217,164,65,.08)}
+  .seg button:focus-visible{outline:1px solid var(--amber);outline-offset:2px}
+  .hist{display:flex;flex-direction:column;gap:12px}
+  .hist .h-spk{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--amber);text-transform:uppercase}
+  .hist .h-txt{font-family:var(--serif);font-size:15px;line-height:1.6;color:var(--paper);white-space:pre-line}
+  .hist .h-pick{font-family:var(--sans);font-size:14px;color:var(--cyan)}
+  .booklinks{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:22px}
+  .booklinks a{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);
+    border:1px solid rgba(217,164,65,.45);padding:11px 16px;text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
+  .booklinks a:hover,.booklinks a:focus-visible{background:rgba(217,164,65,.1);outline:none;border-color:var(--amber)}
+  .booklinks a.quiet{color:var(--dim);border-color:#2A3247}
+  .card .menu .mbtn{width:100%}
+  .card h1 + .note{margin-top:22px}
+  .card .note{line-height:1.5}
+  .card .tinfo{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--dim);margin-top:14px;text-transform:uppercase}
+  .card,.stats{overflow-y:auto}
+  /* centered but scrollable: long endings on small screens were cut off at the top */
+  .card,.stats{justify-content:flex-start}
+  .card > :first-child,.stats > :first-child{margin-top:auto}
+  .card > :last-child,.stats > :last-child{margin-bottom:auto}
+  .epi-list .mbtn small{display:block;font-size:10px;letter-spacing:.14em;color:var(--dim);margin-top:4px}
+  .confirm{border-color:var(--red)!important;color:var(--red)!important}
+  @media (max-width:640px){
+    #hud{padding:0 16px;font-size:10px}
+    #hud .recTxt,#hud .dot{display:none}
+    #attWrap{margin-right:0}
+    #attTrack{width:60px}
+    #topCtl{top:6px;right:8px}
+    #topCtl button{padding:0 10px}
+    #topCtl #audioBtn{display:none} /* sound stays available in Menu > Settings */
+    #hud{padding-right:80px !important;align-items:center}
+    #hudEp{max-width:52%;line-height:1.35}
+    .attLbl{display:none}
+    .card h1{font-size:clamp(26px,8vw,40px)}
+    .card .eyebrow{letter-spacing:.3em}
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -320,23 +394,35 @@
     <div class="corner c-br"><b class="h"></b><b class="v"></b></div>
     <div id="hud">
       <span id="hudEp"></span>
-      <span class="rec"><span id="attWrap" title="System attention"><span class="attLbl">ATTENTION</span><span id="attTrack"><span id="attFill"></span></span></span><span id="anomCount"></span>&nbsp;&nbsp;<span class="dot"></span> REC · ITERATION 848<button id="audioBtn" title="Toggle sound">SOUND: ON</button></span>
+      <span class="rec"><span id="attWrap" title="System attention"><span class="attLbl">ATTENTION</span><span id="attTrack"><span id="attFill"></span></span></span><span id="anomCount"></span>&nbsp;&nbsp;<span class="dot"></span><span class="recTxt"> REC · ITERATION 848</span></span>
     </div>
     <div id="toasts"></div>
     <div id="scene">
       <div id="speaker"></div>
       <div id="text"></div>
-      <div id="qte"><div class="prompt">TURN THE VALVE — PRESS ANY KEY / TAP RAPIDLY</div><div id="qteTrack"><div id="qteFill"></div></div></div>
+      <div id="qte"><div class="prompt">TURN THE VALVE: PRESS ANY KEY / TAP RAPIDLY</div><div id="qteTrack"><div id="qteFill"></div></div></div>
       <div id="sqte"><div class="key"></div><div class="sub"></div></div>
       <div id="holdp"><div class="hicon">⨂</div><div class="hsub">DO NOT MOVE · DO NOT PRESS ANYTHING</div></div>
-      <div id="more">Continue ▸</div>
+      <button id="more" type="button">Continue ▸</button>
       <div id="timerWrap"><div id="timerBar"></div></div>
       <div id="choices"></div>
     </div>
   </div>
   <div class="bar"></div>
   <div id="overlay"></div>
+  <div id="topCtl"><button id="audioBtn" type="button" title="Toggle sound" aria-label="Toggle sound">SOUND: ON</button><button id="menuBtn" type="button" title="Menu (Esc)" aria-label="Open menu">MENU</button></div>
+  <div id="menuLayer" role="dialog" aria-modal="true" aria-label="Game menu"><div class="panel" id="menuPanel"></div></div>
 </div>
+<script>
+/* WebGL check: the game renders its scenes in 3D. Show a clear message instead of a blank screen. */
+(function(){ try{ var c=document.createElement("canvas"); if(c.getContext("webgl2")||c.getContext("webgl")) return; }catch(e){}
+  window.__noWebGL = true;
+  document.addEventListener("DOMContentLoaded", function(){
+    var o=document.getElementById("overlay");
+    o.innerHTML='<div class="card"><div class="eyebrow">Display error</div><h1>WebGL is required</h1><div class="note" style="max-width:40ch;margin-top:18px">This game draws its scenes in 3D. Please open it in an up-to-date Chrome, Edge, Firefox, or Safari with hardware acceleration turned on.</div><div class="booklinks"><a href="https://www.amazon.com/dp/B0H2WK88X3" target="_blank" rel="noopener">Read the novel on Amazon</a></div></div>';
+  });
+})();
+</script>
 
 <script src="./three.min.js"></script>
 <script src="./three-post.js"></script>
@@ -355,6 +441,14 @@ const DEFAULT_STATE = () => ({
   flags: {}, log: [], unlocked: [1], predAcc: 62, predPicks: []
 });
 let S = DEFAULT_STATE();
+// ---------- player settings (persisted separately from the story save) ----------
+const SETTINGS_KEY = "lot_settings";
+const SET = Object.assign({ textSpeed:"normal", timer:"normal", sound:true, seenHelp:false, gfx:"auto" },
+  (()=>{ try{ return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; }catch(e){ return {}; } })());
+function saveSettings(){ try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(SET)); }catch(e){} }
+let PAUSED = false;          // true while the menu is open: timed choices stop draining
+const HIST = [];             // dialogue backlog for the History panel
+function histPush(item){ HIST.push(item); if (HIST.length > 80) HIST.shift(); }
 let cur = null, page = 0, timerId = null, qteId = null;
 
 const $ = id => document.getElementById(id);
@@ -402,7 +496,7 @@ function anomaly(label){
   const c = $("anomCount");
   c.textContent = "ANOMALY №" + S.anomalies + (label ? " · " + label : "");
   c.classList.add("on");
-  toast("+ ANOMALY LOGGED №" + S.anomalies + (label ? " — " + label : ""), "anom");
+  toast("+ ANOMALY LOGGED №" + S.anomalies + (label ? ": " + label : ""), "anom");
   setTimeout(()=>c.classList.remove("on"), 4000);
 }
 function logChoice(ep, label){ S.log.push({ep, label}); }
@@ -413,7 +507,25 @@ function cohortPct(str){
 }
 function save(){
   if (cur === "title") return; // never clobber a real save with the title screen
-  try{ localStorage.setItem("lot_save2", JSON.stringify({cur, S})); }catch(e){}
+  const n = STORY[cur];
+  try{
+    if (n && n.ending){
+      // finished: remember the ending, clear the resume point so Continue never reopens a finished run
+      const seen = loadEndings(); if (!seen.includes(cur)) seen.push(cur);
+      localStorage.setItem("lot_endings", JSON.stringify(seen));
+      localStorage.removeItem("lot_save2");
+      return;
+    }
+    localStorage.setItem("lot_save2", JSON.stringify({cur, S}));
+  }catch(e){}
+}
+function loadEndings(){ try{ return JSON.parse(localStorage.getItem("lot_endings")) || []; }catch(e){ return []; } }
+function loadEpSnaps(){ try{ return JSON.parse(localStorage.getItem("lot_eps")) || {}; }catch(e){ return {}; } }
+function snapEpisode(epn){
+  // state at the start of an episode, so it can be replayed or restarted from the menu
+  S.curEp = epn;
+  const snaps = loadEpSnaps(); snaps[epn] = JSON.parse(JSON.stringify(S));
+  try{ localStorage.setItem("lot_eps", JSON.stringify(snaps)); }catch(e){}
 }
 function loadSave(){
   try{ return JSON.parse(localStorage.getItem("lot_save2")); }catch(e){ return null; }
@@ -517,7 +629,7 @@ const AU = {
     else if (name==="miss") this.blip(220, 110, 0.25, "sawtooth", 0.09);
   },
   toggle(){
-    this.on = !this.on;
+    this.on = !this.on; SET.sound = this.on; saveSettings();
     $("audioBtn").textContent = "SOUND: " + (this.on ? "ON" : "OFF");
     if (!this.on){ this.stopAmbient(); this.stopViolin(); this.curAmb = null; }
     else { this.ensure(); this.ambient(this.pending || "void"); }
@@ -531,7 +643,14 @@ let glitchUntil = 0, closeupId = null, snapCam = false;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 function R(n){ const x = Math.sin(n*127.1+311.7)*43758.5453; return x - Math.floor(x); }
 
+// Note: the sets are authored for three r147's default "legacy" color mode (hex treated as linear),
+// so color management is left as is. Switching it on made every set much darker and muddier.
+const GFX_PORTRAIT_FOV_CAP = 1.75; // how much wider the lens may get on tall phone screens
 const bgcv = $("bgc");
+// graphics quality: "light" caps resolution at 1.5x, drops bloom and depth of field, smaller shadow maps
+function gfxLight(){ return SET.gfx === "light" || (SET.gfx !== "high" &&
+  (matchMedia("(pointer: coarse)").matches || Math.min(innerWidth, innerHeight) < 600)); }
+let LOWGFX = gfxLight();
 const renderer = new THREE.WebGLRenderer({canvas:bgcv, antialias:true, powerPreference:"high-performance"});
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputEncoding = THREE.sRGBEncoding;
@@ -543,17 +662,55 @@ const _goalPos = new THREE.Vector3(), _goalLook = new THREE.Vector3();
 // post-processing: depth of field + bloom + gamma
 const composer = new THREE.EffectComposer(renderer);
 const renderPassP = new THREE.RenderPass(new THREE.Scene(), camera);
-const bokehPass = new THREE.BokehPass(renderPassP.scene, camera, {focus:4, aperture:0.0001, maxblur:0.008});
+const bokehPass = new THREE.BokehPass(renderPassP.scene, camera, {focus:4, aperture:0.0001, maxblur:0.0045}); // stronger blur smeared the background through soft face edges
 const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(1280,720), 0.38, 0.6, 0.87);
 const gammaPass = new THREE.ShaderPass(THREE.GammaCorrectionShader);
+// final grade: one shared look for every set (cool shadows, warm highlights, firmer contrast,
+// soft vignette and fine animated film grain). Runs after gamma, so it works in display space.
+const GradeShader = {
+  uniforms:{ tDiffuse:{value:null}, uTime:{value:0}, uGrain:{value:.05}, uVig:{value:.5}, uAspect:{value:1.6} },
+  vertexShader:"varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }",
+  fragmentShader:[
+    "uniform sampler2D tDiffuse; uniform float uTime, uGrain, uVig, uAspect; varying vec2 vUv;",
+    "float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }",
+    "void main(){",
+    "  vec3 c = texture2D(tDiffuse, vUv).rgb;",
+    "  float l = dot(c, vec3(.299,.587,.114));",
+    "  c = mix(vec3(l), c, .86);",                                  // slightly desaturated
+    "  c = pow(max(c, 0.0), vec3(1.16));",                          // deeper mids, less pastel
+    "  c = mix(c, c*c*(3.0-2.0*c), .35);",                          // gentle S curve
+    "  float sh = 1.0 - smoothstep(0.0, .45, l), hi = smoothstep(.45, 1.0, l);",
+    "  c += vec3(-.010, .006, .022) * sh;",                         // teal-blue shadows
+    "  c *= mix(vec3(1.0), vec3(1.06, 1.0, .9), hi);",               // warm highlights
+    "  vec2 d = vUv - .5; d.x *= uAspect;",
+    "  c *= mix(1.0 - uVig, 1.0, smoothstep(.95, .2, length(d)));",
+    "  float g = hash(vUv * vec2(1711.0, 1033.0) + fract(uTime) * 91.7) - .5;",
+    "  c += g * uGrain * (1.0 - l * .6);",
+    "  gl_FragColor = vec4(c, 1.0);",
+    "}"].join("\n")
+};
+const gradePass = new THREE.ShaderPass(GradeShader);
 composer.addPass(renderPassP); composer.addPass(bokehPass);
-composer.addPass(bloomPass); composer.addPass(gammaPass);
+composer.addPass(bloomPass); composer.addPass(gammaPass); composer.addPass(gradePass);
+function applyGfx(){
+  LOWGFX = gfxLight();
+  bloomPass.enabled = !LOWGFX;
+  // depth of field stays off: on these soft-edged stylized heads it smeared the background through the
+  // chin and jaw as a visible rectangle (seen in testing), and it is the most expensive pass on phones
+  bokehPass.enabled = false;
+  gradePass.uniforms.uGrain.value = LOWGFX ? .04 : .05;
+  Object.values(WORLDS).forEach(w=>{ if (w.key) setShadowRes(w.key); });
+  resize3d();
+}
+function setShadowRes(l){ const n = LOWGFX ? 512 : 1024;
+  if (l.shadow.mapSize.x !== n){ l.shadow.mapSize.set(n, n); if (l.shadow.map){ l.shadow.map.dispose(); l.shadow.map = null; } } }
 function resize3d(){
   const r = stage.getBoundingClientRect();
-  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio||1));
+  renderer.setPixelRatio(Math.min(LOWGFX ? 1.5 : 2, window.devicePixelRatio||1));
   renderer.setSize(Math.max(2, r.width), Math.max(2, r.height), false);
   composer.setSize(Math.max(2, r.width), Math.max(2, r.height));
   camera.aspect = r.width/Math.max(1, r.height); camera.updateProjectionMatrix();
+  gradePass.uniforms.uAspect.value = camera.aspect;
 }
 window.addEventListener("resize", resize3d);
 
@@ -604,17 +761,48 @@ function textTex(txt,col,font){ return canvasTex(512,128,(c,w,h)=>{
   c.clearRect(0,0,w,h); c.font="700 "+(font||72)+"px monospace"; c.textAlign="center"; c.textBaseline="middle";
   c.shadowColor=col; c.shadowBlur=26; c.fillStyle=col; c.fillText(txt,w/2,h/2); });}
 
-// --- low-poly walkers (pedestrians, seated figures) ---
-function buildWalker(col){
-  const g=new THREE.Group(); const m=M(col,{r:1});
-  const legL=cyl(.06,.07,.6,m,-.09,0,0), legR=cyl(.06,.07,.6,m,.09,0,0);
-  legL.geometry.translate(0,-.3,0); legL.position.y=.62;
-  legR.geometry.translate(0,-.3,0); legR.position.y=.62;
-  const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.16,.5,4,10),m); torso.position.y=1.06;
-  const head=sph(.13,m,0,1.52,0);
-  g.add(legL,legR,torso,head);
-  g.rotation.y=Math.PI/2;
-  return {g, step(ph){ legL.rotation.x=Math.sin(ph)*.5; legR.rotation.x=-Math.sin(ph)*.5; }};
+let WALKER_N = 0;
+// --- background figures: simple but real people (coat, trousers, shoes, hands, head, hair or hat) ---
+// Rigid parts, so they stay cheap; legs and arms swing from hip and shoulder pivots.
+function buildWalker(col, seed){
+  seed = seed || (++WALKER_N)*17;
+  const LQ = LOWGFX, S = LQ ? 8 : 12, base = new THREE.Color(col);
+  const coat = base.clone().lerp(new THREE.Color("#3C4354"), .32 + R(seed)*.2),
+        pants = base.clone().lerp(new THREE.Color("#1A1D24"), .5), skin = new THREE.Color("#5E5048").lerp(base,.35),
+        shoe = new THREE.Color("#0C0D10"), hairC = new THREE.Color(R(seed*3)>.5 ? "#16140F" : "#2C2A28");
+  const mat = M(0xffffff,{r:.95}); mat.vertexColors = true;
+  const K = (c)=>()=>c, W0 = [[0,1]];
+  const g = new THREE.Group();
+  const part = (fn)=>{ const mb = new MeshBuilder(); fn(mb); return new THREE.Mesh(mb.build(false), mat); };
+  const leg = (s)=>{ const pv = new THREE.Group(); pv.position.set(s*.095,.84,0);
+    pv.add(part(mb=>{ mb.tube([{p:[0,0,0],rx:.08,rz:.085,w:W0},{p:[0,-.4,.004],rx:.064,rz:.068,w:W0},
+      {p:[0,-.6,-.004],rx:.056,rz:.06,w:W0},{p:[0,-.78,0],rx:.043,rz:.047,w:W0}], S, K(pants), true, true);
+      mb.tube([{p:[0,-.81,-.05],rx:.038,rz:.028,w:W0},{p:[0,-.8,.02],rx:.042,rz:.034,w:W0},{p:[0,-.815,.11],rx:.032,rz:.02,w:W0}], S, K(shoe), true, true); }));
+    return pv; };
+  const legL = leg(-1), legR = leg(1);
+  const torso = part(mb=>{ mb.tube([{p:[0,.78,0],rx:.165,rz:.11,w:W0},{p:[0,.98,.006],rx:.16,rz:.112,w:W0},
+    {p:[0,1.16,.01],rx:.185,rz:.12,w:W0},{p:[0,1.27,0],rx:.2,rz:.112,w:W0},{p:[0,1.33,-.004],rx:.13,rz:.09,w:W0},
+    {p:[0,1.36,0],rx:.06,rz:.055,w:W0}], S+4, K(coat), true, true);
+    mb.tube([{p:[0,1.32,0],rx:.046,rz:.048,w:W0},{p:[0,1.44,.006],rx:.044,rz:.046,w:W0}], S, K(skin), false, true);
+    if (R(seed*7)>.55) mb.tube([{p:[0,.86,0],rx:.17,rz:.115,w:W0},{p:[0,.55,-.006],rx:.2,rz:.14,w:W0}], S+4, K(coat), false, false); });
+  const arm = (s)=>{ const pv = new THREE.Group(); pv.position.set(s*.215,1.27,0);
+    pv.add(part(mb=>{ mb.tube([{p:[0,0,0],rx:.055,rz:.058,w:W0},{p:[0,-.26,.004],rx:.046,rz:.049,w:W0},
+      {p:[0,-.47,.008],rx:.038,rz:.04,w:W0}], S, K(coat), true, true);
+      mb.tube([{p:[0,-.46,.008],rx:.02,rz:.032,w:W0},{p:[-s*.004,-.56,.01],rx:.016,rz:.03,w:W0}], S, K(skin), false, true); }));
+    return pv; };
+  const armL = arm(-1), armR = arm(1);
+  const headG = new THREE.Group(); headG.position.set(0,1.56,.005);
+  const hm = new THREE.Mesh(sculptHead(LQ ? 16 : 22, .36), M(skin.getHex(),{r:.8})); hm.scale.setScalar(.78); headG.add(hm);
+  const hmat = M(hairC.getHex(),{r:.7});
+  if (R(seed*11)>.6){ const hat = new THREE.Group(); hat.position.set(0,.1,0);
+    hat.add(cyl(.1,.118,.1,hmat,0,.05,0,14), cyl(.2,.2,.01,hmat,0,0,0,18)); headG.add(hat); }
+  else { const cap = new THREE.Mesh(new THREE.SphereGeometry(HEAD_R,16,10,0,Math.PI*2,0,Math.PI*.5), hmat);
+    cap.scale.set(HEAD_S[0]*.81,HEAD_S[1]*.81,HEAD_S[2]*.8); cap.position.set(0,.004,-.006); headG.add(cap); }
+  g.add(legL, legR, torso, armL, armR, headG);
+  g.traverse(o=>{ if (o.isMesh) o.castShadow = true; });
+  g.rotation.y = Math.PI/2;
+  return {g, step(ph){ const k = Math.sin(ph); legL.rotation.x = k*.5; legR.rotation.x = -k*.5;
+    armL.rotation.x = -k*.35; armR.rotation.x = k*.35; }};
 }
 
 // --- character factory: stylized figures with expressive drawn faces ---
@@ -628,47 +816,69 @@ const HAIRLINES = {vera:"bangs", sarah:"swept", david:"high", assessor:"slick", 
 function drawFace(c,cfg,mood,style,open,lid,sacX,sacY){
   const m = FACEMOODS[mood]||FACEMOODS.calm;
   lid = lid||0; sacX = sacX||0; sacY = sacY||0;
+  const fs = c.canvas.width/256; c.setTransform(fs,0,0,fs,0,0); // drawn in 256 units, rendered at canvas resolution
   c.clearRect(0,0,256,256);
   c.save();
   c.beginPath(); c.ellipse(128,132,110,120,0,0,7); c.clip();
   c.fillStyle=cfg.skin; c.fillRect(0,0,256,256);
-  const sg=c.createLinearGradient(0,0,0,256);
-  sg.addColorStop(0,"rgba(255,255,255,.08)"); sg.addColorStop(1,"rgba(20,10,30,.22)");
-  c.fillStyle=sg; c.fillRect(0,0,256,256);
   // hairline
   c.fillStyle=cfg.hairC; c.beginPath();
   if(style==="bangs"){ c.moveTo(0,92); c.quadraticCurveTo(128,58,256,92); c.lineTo(256,0); c.lineTo(0,0); }
   else if(style==="swept"){ c.moveTo(0,104); c.quadraticCurveTo(110,34,256,64); c.lineTo(256,0); c.lineTo(0,0); }
   else if(style==="high"){ c.moveTo(0,52); c.quadraticCurveTo(128,20,256,52); c.lineTo(256,0); c.lineTo(0,0); }
+  else if(style==="none"){ }
   else if(style==="slick"){ c.moveTo(0,74); c.quadraticCurveTo(128,36,256,74); c.lineTo(256,0); c.lineTo(0,0); }
   else { c.moveTo(0,68); c.quadraticCurveTo(128,30,256,68); c.lineTo(256,0); c.lineTo(0,0); }
   c.closePath(); c.fill();
   // eyes with saccading irises and blinking lids
-  const eye=(x)=>{ c.fillStyle="#EDE8DC"; c.beginPath(); c.ellipse(x,138,16,10.5,0,0,7); c.fill();
-    c.fillStyle=cfg.eye; c.beginPath(); c.arc(x+sacX,139+sacY,7.2,0,7); c.fill();
-    c.fillStyle="#1A140E"; c.beginPath(); c.arc(x+sacX,139+sacY,3.2,0,7); c.fill();
-    c.fillStyle="rgba(255,255,255,.9)"; c.beginPath(); c.arc(x+sacX+2.4,135.5+sacY,2.1,0,7); c.fill();
-    if(lid>0.02){ c.fillStyle=cfg.skin;
-      c.fillRect(x-17,126,34,23*Math.min(1,lid)); } };
+  // soft modelling painted into the skin: cheek warmth, eye sockets, under-nose and chin shade
+  const blush=(x)=>{ const g=c.createRadialGradient(x,176,2,x,176,30); g.addColorStop(0,"rgba(190,90,80,.16)"); g.addColorStop(1,"rgba(190,90,80,0)");
+    c.fillStyle=g; c.fillRect(x-32,144,64,64); }; blush(80); blush(176);
+  const sock=(x)=>{ const g=c.createRadialGradient(x,134,4,x,134,30); g.addColorStop(0,"rgba(60,30,40,.16)"); g.addColorStop(1,"rgba(60,30,40,0)");
+    c.fillStyle=g; c.fillRect(x-32,102,64,64); }; sock(92); sock(164);
+  const ch=c.createRadialGradient(128,232,4,128,232,46); ch.addColorStop(0,"rgba(40,20,30,.14)"); ch.addColorStop(1,"rgba(40,20,30,0)");
+  c.fillStyle=ch; c.fillRect(80,190,96,66);
+  // eyes: smaller whites, iris fills more of the eye, upper lash line and lid crease
+  const eye=(x)=>{ c.save(); c.beginPath(); c.ellipse(x,139,14,8.6,0,0,7); c.clip();
+    c.fillStyle="#E4DDD0"; c.fillRect(x-16,128,32,22);
+    c.fillStyle=cfg.eye; c.beginPath(); c.arc(x+sacX,139.5+sacY,7.4,0,7); c.fill();
+    c.fillStyle="#120E0A"; c.beginPath(); c.arc(x+sacX,139.5+sacY,3.3,0,7); c.fill();
+    c.fillStyle="rgba(0,0,0,.22)"; c.fillRect(x-16,128,32,4.5);            // lid shadow on the eyeball
+    c.fillStyle="rgba(255,255,255,.85)"; c.beginPath(); c.arc(x+sacX+2.4,136.5+sacY,1.8,0,7); c.fill();
+    if(lid>0.02){ c.fillStyle=cfg.skin; c.fillRect(x-16,129,32,21*Math.min(1,lid)); }
+    c.restore();
+    c.strokeStyle="rgba(26,18,16,.85)"; c.lineWidth=2.6; c.lineCap="round";
+    c.beginPath(); c.ellipse(x,139+Math.min(1,lid)*7,14.4,8.8*(1-Math.min(1,lid)*.9),0,Math.PI*1.06,Math.PI*1.94); c.stroke();
+    c.strokeStyle="rgba(80,50,45,.28)"; c.lineWidth=1.6;
+    c.beginPath(); c.ellipse(x,137,15,11.5,0,Math.PI*1.15,Math.PI*1.85); c.stroke(); };
   eye(92); eye(164);
   // brows
-  c.strokeStyle=cfg.hairC; c.lineWidth=5.5; c.lineCap="round"; c.globalAlpha=.9;
+  c.strokeStyle=cfg.hairC; c.lineWidth=4.6; c.lineCap="round"; c.globalAlpha=.85;
   c.beginPath(); c.moveTo(72,116+m.bi); c.quadraticCurveTo(92,108+m.bo,110,113+m.bo*0.4); c.stroke();
   c.beginPath(); c.moveTo(184,116+m.bi); c.quadraticCurveTo(164,108+m.bo,146,113+m.bo*0.4); c.stroke();
   c.globalAlpha=1;
   // nose + mouth (open while speaking)
-  c.strokeStyle="rgba(0,0,0,.24)"; c.lineWidth=4;
-  c.beginPath(); c.moveTo(128,152); c.quadraticCurveTo(133,164,128,172); c.stroke();
+  c.strokeStyle="rgba(60,30,25,.18)"; c.lineWidth=3;
+  c.beginPath(); c.moveTo(131,148); c.quadraticCurveTo(135,163,131,172); c.stroke();
+  c.fillStyle="rgba(60,30,25,.2)"; c.beginPath(); c.ellipse(128,175,10,3.2,0,0,7); c.fill();
   if(open){
     c.fillStyle="#5A322A"; c.beginPath();
     c.ellipse(128,199,13,7+Math.max(0,m.mc*0.3),0,0,7); c.fill();
     c.fillStyle="rgba(255,255,255,.85)"; c.fillRect(119,192,18,3);
   } else {
-    c.strokeStyle="#7A4A3C"; c.lineWidth=6;
-    c.beginPath(); c.moveTo(105,196); c.quadraticCurveTo(128,196+m.mc,151,196); c.stroke();
+    c.strokeStyle="#7A4038"; c.lineWidth=4;
+    c.beginPath(); c.moveTo(108,196); c.quadraticCurveTo(128,196+m.mc,148,196); c.stroke();
+    c.fillStyle="rgba(150,80,70,.32)"; c.beginPath(); c.ellipse(128,201+m.mc*.35,11,3.6,0,0,7); c.fill();
   }
   if(cfg.extra){ c.strokeStyle="rgba(120,80,60,.7)"; c.lineWidth=4;
     c.beginPath(); c.moveTo(76,104); c.lineTo(93,97); c.stroke(); }
+  c.restore();
+  // feather the outer edge so the face blends into the head instead of reading as a pasted-on disc
+  c.save(); c.globalCompositeOperation="destination-in";
+  c.translate(128,132); c.scale(1,120/110);
+  const fg=c.createRadialGradient(0,0,0,0,0,110);
+  fg.addColorStop(0,"rgba(0,0,0,1)"); fg.addColorStop(0.62,"rgba(0,0,0,1)"); fg.addColorStop(1,"rgba(0,0,0,0)");
+  c.fillStyle=fg; c.fillRect(-140,-140,280,280);
   c.restore();
 }
 /* ============================================================
@@ -795,92 +1005,370 @@ function makeAnim(bones){
   };
 }
 
-function buildChar(id){
-  const cfg = CHARS[id] || CHARS.worker;
-  const g = new THREE.Group();
-  const mats = [];
-  const mk=(c,o)=>{ const m=M(c,Object.assign({t:true},o||{})); m.userData.base=new THREE.Color(c); mats.push(m); return m; };
-  const pants = mk("#171B26"), topM = mk(cfg.top), skin = mk(cfg.skin,{r:.75}),
-        hair = mk(cfg.hairC,{r:.6}), shoe = mk("#10131C");
-  // full bone hierarchy from primitives, same silhouette and materials as before
-  const bones = {};
-  const B=(name,parent,x,y,z)=>{ const o=new THREE.Object3D(); o.position.set(x,y,z);
-    parent.add(o); bones[name]=o; return o; };
-  const put=(parent,mesh2,x,y,z)=>{ mesh2.position.set(x,y,z); parent.add(mesh2); return mesh2; };
+// ============================================================
+//  CHARACTER MODELS: procedural stylized low-poly meshes (authored in code, no external assets)
+//  Each character is one skinned body mesh (legs, pelvis, torso, neck, sleeves, hands with fingers,
+//  shoes) bound to the existing bone rig, so every clip, breathing and head-turn hook still drives it.
+//  The head is one sculpted mesh (brow ridge, eye sockets, nose, cheekbones, mouth, jaw, chin) with
+//  the face painted into its own UV map, so there is no separate face card and no edge.
+//  Clothing is painted with vertex colours.
+// ============================================================
+let BLOB = null;
+function blobTex(){ return BLOB || (BLOB = canvasTex(128,128,(c,w,h)=>{
+  const g=c.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);
+  g.addColorStop(0,"rgba(0,0,0,.85)"); g.addColorStop(.45,"rgba(0,0,0,.45)"); g.addColorStop(1,"rgba(0,0,0,0)");
+  c.fillStyle=g; c.fillRect(0,0,w,h); })); }
 
-  const hips=B("hips",g,0,.66,0);
-  put(hips,box(.36,.16,.22,pants,0,0,0),0,.02,0);
-  const ulL=B("ulL",hips,-.11,-.04,0), ulR=B("ulR",hips,.11,-.04,0);
-  put(ulL,cyl(.085,.092,.30,pants,0,0,0),0,-.15,0);
-  put(ulR,cyl(.085,.092,.30,pants,0,0,0),0,-.15,0);
-  const llL=B("llL",ulL,0,-.30,0), llR=B("llR",ulR,0,-.30,0);
-  put(llL,cyl(.075,.10,.28,pants,0,0,0),0,-.14,0);
-  put(llR,cyl(.075,.10,.28,pants,0,0,0),0,-.14,0);
-  const footL=B("footL",llL,0,-.28,0), footR=B("footR",llR,0,-.28,0);
-  put(footL,box(.10,.05,.17,shoe,0,0,0),0,-.015,.03);
-  put(footR,box(.10,.05,.17,shoe,0,0,0),0,-.015,.03);
-
-  const spine=B("spine",hips,0,.12,0);
-  put(spine,box(.33,.16,.21,topM,0,0,0),0,.06,0);
-  const chest=B("chest",spine,0,.24,0);
-  const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.185,.42,6,14),topM);
-  torso.scale.set(1,1,.72); put(chest,torso,0,0,0);
-  const shL=B("shL",chest,-.245,.22,0), shR=B("shR",chest,.245,.22,0);
-  const uaL=B("uaL",shL,-.015,0,0), uaR=B("uaR",shR,.015,0,0);
-  const uaGeo=new THREE.CapsuleGeometry(.055,.18,4,10);
-  put(uaL,new THREE.Mesh(uaGeo,topM),0,-.12,0);
-  put(uaR,new THREE.Mesh(uaGeo,topM),0,-.12,0);
-  const laL=B("laL",uaL,0,-.25,0), laR=B("laR",uaR,0,-.25,0);
-  const laGeo=new THREE.CapsuleGeometry(.05,.15,4,10);
-  put(laL,new THREE.Mesh(laGeo,skin),0,-.10,0);
-  put(laR,new THREE.Mesh(laGeo,skin),0,-.10,0);
-  const handL=B("handL",laL,0,-.225,0), handR=B("handR",laR,0,-.225,0);
-  put(handL,sph(.055,skin,0,0,0),0,-.01,0);
-  put(handR,sph(.055,skin,0,0,0),0,-.01,0);
-  uaL.rotation.z=.09; uaR.rotation.z=-.09;
-
-  const neck=B("neck",chest,0,.32,0);
-  put(neck,cyl(.06,.07,.1,skin,0,0,0),0,-.02,0);
-  const hg=B("head",neck,0,.18,0);
-  const head=sph(.165,skin,0,0,0); head.scale.set(.94,1.12,.9); hg.add(head);
-  if(id==="vera"){
-    const cap=sph(.18,hair,0,.03,-.01,{tl:Math.PI*0.55}); cap.scale.set(1,1,.85); hg.add(cap);
-    hg.add(box(.06,.22,.14,hair,-.15,-.06,-.02)); hg.add(box(.06,.22,.14,hair,.15,-.06,-.02));
-  } else if(id==="sarah"){
-    const cap=sph(.18,hair,0,.03,-.015,{tl:Math.PI*0.55}); cap.scale.set(1,1,.85); hg.add(cap);
-    hg.add(box(.3,.5,.09,hair,0,-.22,-.15));
-    hg.add(box(.07,.4,.11,hair,-.16,-.18,-.05)); hg.add(box(.07,.4,.11,hair,.16,-.18,-.05));
-  } else if(id==="david"){
-    const band=new THREE.Mesh(new THREE.TorusGeometry(.145,.05,10,20,Math.PI),hair);
-    band.position.set(0,-.02,-.02); band.rotation.x=Math.PI/2; band.rotation.z=Math.PI; hg.add(band);
-  } else if(id==="assessor"||id==="worker"){
-    const cap=sph(.178,hair,0,.035,-.01,{tl:Math.PI*0.5}); cap.scale.set(1,.96,.85); hg.add(cap);
-    hg.add(sph(.075,hair,0,.15,-.15));
-  } else {
-    const cap=sph(.176,hair,0,.035,-.01,{tl:Math.PI*0.48}); cap.scale.set(1,.95,.85); hg.add(cap);
+// --- mesh builder: tubes through rings, each ring carrying bone weights, merged into one geometry ---
+function MeshBuilder(){ this.p=[]; this.c=[]; this.si=[]; this.sw=[]; this.ix=[]; }
+MeshBuilder.prototype.pushV = function(x,y,z,col,w){
+  this.p.push(x,y,z); this.c.push(col.r,col.g,col.b);
+  const ww = (w||[[0,1]]).slice(0,4); let s = 0; ww.forEach(q=>s+=q[1]);
+  for (let k=0;k<4;k++){ const q = ww[k]; this.si.push(q ? q[0] : 0); this.sw.push(q ? q[1]/s : 0); }
+};
+// rings: [{p:[x,y,z], rx, rz, w:[[boneIndex,weight],...]}]; colorFn(x,y,z) -> THREE.Color
+MeshBuilder.prototype.tube = function(rings, seg, colorFn, capA, capB){
+  const base = this.p.length/3, n = rings.length, d = new THREE.Vector3(), ref = new THREE.Vector3(),
+        u = new THREE.Vector3(), v = new THREE.Vector3();
+  for (let i=0;i<n;i++){
+    const r = rings[i], a = rings[Math.max(0,i-1)].p, b = rings[Math.min(n-1,i+1)].p;
+    d.set(b[0]-a[0], b[1]-a[1], b[2]-a[2]).normalize();
+    if (Math.abs(d.z) < .9) ref.set(0,0,1); else ref.set(0,1,0);
+    u.crossVectors(d, ref).normalize(); v.crossVectors(u, d).normalize();
+    for (let j=0;j<seg;j++){
+      const t = j/seg*Math.PI*2, cu = Math.cos(t)*r.rx, cv = Math.sin(t)*r.rz;
+      const x = r.p[0]+u.x*cu+v.x*cv, y = r.p[1]+u.y*cu+v.y*cv, z = r.p[2]+u.z*cu+v.z*cv;
+      this.pushV(x,y,z,colorFn(x,y,z),r.w);
+    }
   }
-  const fcv=document.createElement("canvas"); fcv.width=256; fcv.height=256;
-  const fctx=fcv.getContext("2d");
-  const ftex=new THREE.CanvasTexture(fcv);
-  const fmat=new THREE.MeshBasicMaterial({map:ftex,transparent:true,alphaTest:.05});
-  fmat.userData.base=new THREE.Color(0xffffff); mats.push(fmat);
-  hg.add(plane(.335,.355,fmat,0,.005,.152));
+  for (let i=0;i<n-1;i++) for (let j=0;j<seg;j++){
+    const a = base+i*seg+j, b = base+i*seg+(j+1)%seg, c = base+(i+1)*seg+j, e = base+(i+1)*seg+(j+1)%seg;
+    this.ix.push(a,c,b, b,c,e);
+  }
+  const cap = (ri, start)=>{ const r = rings[ri], ci = this.p.length/3;
+    this.pushV(r.p[0],r.p[1],r.p[2],colorFn(r.p[0],r.p[1],r.p[2]),r.w);
+    for (let j=0;j<seg;j++){ const a = base+ri*seg+j, b = base+ri*seg+(j+1)%seg;
+      if (start) this.ix.push(ci,a,b); else this.ix.push(ci,b,a); } };
+  if (capA) cap(0, true); if (capB) cap(n-1, false);
+};
+MeshBuilder.prototype.build = function(skinned){
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(this.p,3));
+  g.setAttribute("color", new THREE.Float32BufferAttribute(this.c,3));
+  if (skinned){ g.setAttribute("skinIndex", new THREE.Uint16BufferAttribute(this.si,4));
+    g.setAttribute("skinWeight", new THREE.Float32BufferAttribute(this.sw,4)); }
+  g.setIndex(this.ix); g.computeVertexNormals(); return g;
+};
+
+// --- sculpted head: a sphere pushed and pulled into a face; UVs stay the sphere's own ---
+// Feature angles match where drawFace paints them (yaw 0 = front, pitch 0 = eye line, radians).
+const HEAD_R = .165, HEAD_S = [.9,1.12,.95];
+function sculptHead(seg, crownTl){
+  const geo = new THREE.SphereGeometry(HEAD_R, seg, Math.round(seg*.75));
+  const p = geo.attributes.position, G = (a,b,a0,b0,sa,sb)=>Math.exp(-(((a-a0)/sa)**2)-(((b-b0)/sb)**2));
+  const h0 = crownTl ? Math.PI*crownTl - .1 : -1;
+  for (let i=0;i<p.count;i++){
+    const nx = p.getX(i)/HEAD_R, ny = p.getY(i)/HEAD_R, nz = p.getZ(i)/HEAD_R;
+    const yaw = Math.atan2(nx, nz), pitch = Math.asin(Math.max(-1,Math.min(1,ny))), th = Math.acos(Math.max(-1,Math.min(1,ny)));
+    let d = 0;
+    const t = Math.max(0, Math.min(1, (.10 - pitch)/.38));                       // nose: bridge to tip
+    const prof = pitch < -.28 ? Math.exp(-(((pitch+.28)/.04)**2)) : Math.pow(t, 1.35);
+    const sa = .07 + .05*t;
+    d += .018 * prof * Math.exp(-((yaw/sa)**2));
+    d += .004 * (G(yaw,pitch,.075,-.27,.03,.03) + G(yaw,pitch,-.075,-.27,.03,.03));   // nostril wings
+    d += .009 * Math.exp(-(((pitch-.17)/.06)**2)) * Math.exp(-((yaw/.42)**4));           // brow ridge
+    d -= .011 * (G(yaw,pitch,.27,-.035,.11,.08) + G(yaw,pitch,-.27,-.035,.11,.08));   // eye sockets
+    d += .005 * (G(yaw,pitch,.27,-.045,.06,.045) + G(yaw,pitch,-.27,-.045,.06,.045)); // eyeballs under the lids
+    d += .006 * (G(yaw,pitch,.37,-.2,.12,.1) + G(yaw,pitch,-.37,-.2,.12,.1));         // cheekbones
+    d -= .004 * (G(yaw,pitch,.42,-.46,.12,.1) + G(yaw,pitch,-.42,-.46,.12,.1));       // cheek hollows
+    d += .004 * G(yaw,pitch,0,-.47,.26,.13);                                          // mouth muzzle
+    d += .003 * G(yaw,pitch,0,-.49,.11,.03);                                          // lower lip
+    d -= .004 * G(yaw,pitch,0,-.6,.14,.05);                                           // dip under the lower lip
+    if (th < h0) d -= .007 * Math.min(1, (h0-th)/.12);                                // tuck the skull under the hair
+    const r = HEAD_R + d;
+    let x = nx*r*HEAD_S[0], y = ny*r*HEAD_S[1], z = nz*r*HEAD_S[2];
+    if (ny < 0){ const k = Math.pow(-ny, 1.5); x *= 1 - .34*k; z *= 1 - .1*k; }          // jaw taper toward a V
+    if (ny < -.2 && nz > 0){ const k = Math.min(1, (-ny-.2)/.5) * Math.pow(nz, 4); z += .012*k*Math.exp(-((yaw/.3)**2)); } // chin juts forward
+    p.setXYZ(i, x, y, z);
+  }
+  geo.computeVertexNormals(); return geo;
+}
+// face texture placement on the head's UV map (same angular window drawFace was authored for)
+const FACE_U0 = .25 - .155, FACE_UW = .31, FACE_V0 = .2 - .04/Math.PI, FACE_VH = .6;
+
+// --- per-character build, outfit and silhouette ---
+const BODY = {
+  //        h: height, sh: shoulder half-width, ch/wa/hp: chest, waist, hip half-widths
+  vera:    {h:1.0,  sh:.2,   ch:.172, wa:.134, hp:.16, ar:.8},
+  sarah:   {h:.97,  sh:.198, ch:.172, wa:.138, hp:.165, ar:.84},
+  david:   {h:.96,  sh:.22,  ch:.198, wa:.18,  hp:.172},
+  assessor:{h:1.04, sh:.228, ch:.198, wa:.162, hp:.165},
+  stranger:{h:1.05, sh:.222, ch:.19,  wa:.16,  hp:.165, coat:true},
+  marcus:  {h:1.0,  sh:.222, ch:.192, wa:.158, hp:.165},
+  worker:  {h:.97,  sh:.208, ch:.18,  wa:.15,  hp:.164}
+};
+const C3 = (s)=>new THREE.Color(s);
+function outfit(id, cfg){
+  const top = C3(cfg.top), pants = C3("#1E222B"), shoe = C3("#121419");
+  const fns = {
+    assessor:{ top:(x,y,z,pt)=> pt ? (y<.81 ? C3("#C9C6BC") : C3("#262A35")) : z>.02 && y>1.06 && Math.abs(x) < Math.min(.048, (y-1.06)*.3) ? (Math.abs(x)<.014 && y<1.28 ? C3("#4A1A1E") : C3("#C9C6BC")) : C3("#262A35"),
+               pants:C3("#1F232C") },
+    vera:    { top:(x,y,z,pt)=> pt ? (y<.83 ? C3("#1F2D4E") : top) : z>0 && Math.abs(x)<.009 && y>.9 ? C3("#5FA9B8") : (y>.86 && y<.9 ? C3("#11151F") : (y>1.29 ? C3("#1F2D4E") : top)),
+               pants:C3("#18203A") },
+    sarah:   { top:(x,y,z,pt)=> pt ? top : z>.03 && y>.76 && Math.abs(x) < Math.min(.05, .03 + Math.max(0,y-1.16)*.3) ? C3("#A49C8A") : top, pants:C3("#25272D") },
+    david:   { top:(x,y,z)=> y<.86 ? C3("#776A50") : (y>1.29 ? C3("#6E6248") : top), pants:C3("#3A3428") },
+    stranger:{ top:(x,y,z,pt)=> pt ? (y<.83 ? C3("#2F2B24") : C3("#3E392F")) : z>.02 && y>1.05 && Math.abs(x) < Math.min(.05,(y-1.05)*.3) ? C3("#26282C") : (y>.85 && y<.89 ? C3("#1F1C17") : C3("#3E392F")),
+               pants:C3("#202228"), shoe:C3("#2A2018") },
+    marcus:  { top:(x,y,z,pt)=> pt ? top : z>0 && Math.abs(x)<.006 && y>.84 ? C3("#2E3238") : top, pants:C3("#1F232B") },
+    worker:  { top:(x,y,z,pt)=> pt ? top : y>1.28 && z>0 ? C3("#B8B4A8") : top, pants:C3("#22262E") }
+  };
+  const f = fns[id] || fns.worker;
+  return { top: typeof f.top === "function" ? f.top : ()=>f.top, pants: f.pants || pants, shoe: f.shoe || shoe };
+}
+
+// hair styles in head angles (yaw 0 = front, + = character's left / viewer's right; pitch 0 = eye line).
+// line: forehead and temple hairline from viewer-left to viewer-right; side: where hair stops beside the face
+// going down; nape: lowest hair at the back; ears: leave the ears out.
+const HAIR3D = {
+  vera:    {puff:1.075, lo:.035, line:[[-.66,.1],[-.5,.2],[-.25,.23],[0,.23],[.25,.23],[.5,.2],[.66,.1]], side:[-.6,.6], low:-.62, nape:-.6, ears:false},
+  sarah:   {puff:1.07, lo:.03, line:[[-.72,.0],[-.58,.2],[-.32,.3],[-.06,.36],[.1,.42],[.34,.38],[.6,.26],[.74,.0]], side:[-.7,.74], low:-.8, nape:-.74, ears:false},
+  assessor:{puff:1.05, lo:.012, line:[[-1.2,-.2],[-1.12,.08],[-.9,.24],[-.6,.36],[-.3,.42],[0,.43],[.3,.42],[.6,.36],[.9,.24],[1.12,.08],[1.2,-.2]], side:[-1.2,1.2], low:-.22, nape:-.32, ears:true},
+  worker:  {puff:1.05, lo:.012, line:[[-1.2,-.2],[-1.12,.06],[-.9,.22],[-.6,.33],[-.3,.38],[0,.39],[.3,.38],[.6,.33],[.9,.22],[1.12,.06],[1.2,-.2]], side:[-1.2,1.2], low:-.22, nape:-.34, ears:true},
+  david:   {puff:1.07, lo:.014, line:[[-1.2,-.18],[-1.12,.1],[-.88,.28],[-.6,.42],[-.36,.4],[-.12,.36],[.08,.38],[.36,.4],[.6,.42],[.88,.28],[1.12,.1],[1.2,-.18]], side:[-1.2,1.2], low:-.2, nape:-.32, ears:true},
+  stranger:{puff:1.03, lo:.01, line:[[-1.2,-.16],[-.9,.3],[-.45,.5],[0,.55],[.45,.5],[.9,.3],[1.2,-.16]], side:[-1.2,1.2], low:-.18, nape:-.3, ears:true},
+  short:   {puff:1.06, lo:.012, line:[[-1.2,-.2],[-1.12,.08],[-.9,.22],[-.6,.32],[-.3,.36],[0,.37],[.3,.36],[.6,.32],[.9,.22],[1.12,.08],[1.2,-.2]], side:[-1.2,1.2], low:-.22, nape:-.34, ears:true}
+};
+// hair shell: hugs the skull at its edges and gains volume toward the crown and back
+function hairGeometry(st, seg){
+  const geo = new THREE.SphereGeometry(HEAD_R, seg, Math.round(seg*.7)), p = geo.attributes.position;
+  const edge = (yaw)=>{ const L = st.line, a = Math.abs(yaw);
+    if (yaw <= L[0][0] || yaw >= L[L.length-1][0]) return a > Math.PI*.75 ? st.nape : st.low;
+    for (let i=1;i<L.length;i++) if (yaw <= L[i][0]){ const t = (yaw-L[i-1][0])/(L[i][0]-L[i-1][0]); return L[i-1][1]+(L[i][1]-L[i-1][1])*t; }
+    return st.low; };
+  for (let i=0;i<p.count;i++){
+    const nx = p.getX(i)/HEAD_R, ny = p.getY(i)/HEAD_R, nz = p.getZ(i)/HEAD_R;
+    const yaw = Math.atan2(nx, nz), pitch = Math.asin(Math.max(-1,Math.min(1,ny)));
+    const t = Math.max(0, Math.min(1, (pitch - edge(yaw))/.55)), ts = t*t*(3-2*t);
+    const off = st.lo + (st.puff-1-st.lo)*ts;
+    const r = HEAD_R*(1+off);
+    let x = nx*r*HEAD_S[0], y = ny*r*HEAD_S[1], z = nz*r*HEAD_S[2];
+    if (ny < 0){ const k = Math.pow(-ny, 1.5); x *= 1 - .34*k*(1-off*4); z *= 1 - .1*k; }
+    p.setXYZ(i, x, y, z);
+  }
+  geo.computeVertexNormals(); return geo;
+}
+function hairTexture(st, col, W, seed){
+  const H = W/2, X = (yaw)=>(.25 + yaw/(Math.PI*2))*W, Y = (pitch)=>(Math.PI/2 - pitch)/Math.PI*H;
+  const opening = (c)=>{ c.beginPath();
+    c.moveTo(X(st.side[0]), Y(-1.6));
+    c.lineTo(X(st.side[0]), Y(st.low));
+    st.line.forEach(q=>c.lineTo(X(q[0]), Y(q[1])));
+    c.lineTo(X(st.side[1]), Y(st.low));
+    c.lineTo(X(st.side[1]), Y(-1.6)); c.closePath(); };
+  const tex = canvasTex(W, H, (c)=>{
+    const base = new THREE.Color(col);
+    c.fillStyle = col; c.fillRect(0, 0, W, Y(st.nape));
+    // strands: fine streaks running from the crown down, a little lighter and darker than the base
+    for (let i=0;i<W*1.2;i++){ const x = R(seed+i)*W, len = H*(.15+R(seed+i*3)*.45), k = R(seed+i*7);
+      const cc = base.clone().multiplyScalar(k>.5 ? 1.25+k*.4 : .55+k*.4);
+      c.strokeStyle = "rgba("+(cc.r*255|0)+","+(cc.g*255|0)+","+(cc.b*255|0)+",.35)"; c.lineWidth = W/700;
+      c.beginPath(); const y0 = R(seed+i*11)*Y(st.nape)*.6; c.moveTo(x, y0); c.quadraticCurveTo(x+(R(seed+i*5)-.5)*W*.02, y0+len*.5, x+(R(seed+i*13)-.5)*W*.03, Math.min(Y(st.nape), y0+len)); c.stroke(); }
+    // ragged nape and a soft bottom edge
+    c.globalCompositeOperation = "destination-out";
+    for (let x=0;x<W;x+=W/96){ c.beginPath(); c.arc(x, Y(st.nape)+H*.004, H*(.006+R(seed+x)*.012), 0, 7); c.fill(); }
+    opening(c); c.fill();
+    if (st.ears) [-Math.PI/2, Math.PI/2].forEach(e=>{ c.beginPath(); c.ellipse(X(e), Y(-.03), W*.026, H*.07, 0, 0, 7); c.fill(); });
+    c.globalCompositeOperation = "source-over";
+  });
+  tex.wrapS = THREE.RepeatWrapping;
+  // contact shade painted onto the skin texture just inside the hairline
+  const sh = document.createElement("canvas"); sh.width = W; sh.height = H; const sc = sh.getContext("2d");
+  sc.filter = "blur("+(W/200)+"px)"; sc.strokeStyle = "rgba(30,15,15,.22)"; sc.lineWidth = W/120; sc.lineJoin = "round";
+  sc.beginPath(); st.line.forEach((q,i)=> i ? sc.lineTo(X(q[0]), Y(q[1])) : sc.moveTo(X(q[0]), Y(q[1]))); sc.stroke();
+  tex.userData.shade = sh;
+  return tex;
+}
+function buildChar(id){
+  const cfg = CHARS[id] || CHARS.worker, bd = BODY[id] || BODY.worker, fit = outfit(id, cfg);
+  const LQ = LOWGFX, g = new THREE.Group(), mats = [];
+  const reg=(m,c)=>{ m.userData.base = (c||m.color).clone(); if (m.emissive) m.userData.emi = m.emissive.clone(); mats.push(m); return m; };
+  const SKIN_K = .84, skinC = C3(cfg.skin).multiplyScalar(SKIN_K);
+  const root = new THREE.Group(); root.scale.setScalar(bd.h); g.add(root);
+  // bone rig: same names and offsets the clips were authored for
+  const bones = {}, list = [], BI = {};
+  const B=(name,parent,x,y,z)=>{ const o=new THREE.Bone(); o.name=name; o.position.set(x,y,z);
+    parent.add(o); bones[name]=o; BI[name]=list.length; list.push(o); return o; };
+  const hips=B("hips",root,0,.66,0);
+  const ulL=B("ulL",hips,-.11,-.04,0), ulR=B("ulR",hips,.11,-.04,0);
+  const llL=B("llL",ulL,0,-.30,0), llR=B("llR",ulR,0,-.30,0);
+  B("footL",llL,0,-.28,0); B("footR",llR,0,-.28,0);
+  const spine=B("spine",hips,0,.12,0), chest=B("chest",spine,0,.24,0);
+  const shL=B("shL",chest,-bd.sh,.22,0), shR=B("shR",chest,bd.sh,.22,0);
+  const uaL=B("uaL",shL,-.015,0,0), uaR=B("uaR",shR,.015,0,0);
+  const laL=B("laL",uaL,0,-.25,0), laR=B("laR",uaR,0,-.25,0);
+  B("handL",laL,0,-.225,0); B("handR",laR,0,-.225,0);
+  const neck=B("neck",chest,0,.32,0), hg=B("head",neck,0,.17,0);
+
+  // body mesh in bind pose (all bone rotations zero, arms hanging)
+  const W=(a,b,t)=> t<=0 ? [[BI[a],1]] : t>=1 ? [[BI[b],1]] : [[BI[a],1-t],[BI[b],t]];
+  const mb = new MeshBuilder(), S = LQ ? 12 : 18, ST = LQ ? 24 : 28, SA = LQ ? 10 : 14, SF = LQ ? 5 : 7;
+  const solid = (c)=>()=>c;
+  const pantsF = solid(fit.pants), skinF = solid(skinC), shoeF = solid(fit.shoe);
+  [-1,1].forEach(s=>{
+    const L = s<0 ? "L" : "R", x0 = s*.11;
+    mb.tube([
+      {p:[x0*.75,.74,0], rx:.06, rz:.07, w:W("hips","hips",0)},
+      {p:[x0*.86,.66,0], rx:.078, rz:.092, w:W("hips","ul"+L,.6)},
+      {p:[x0*.95,.56,0], rx:.085, rz:.092, w:W("ul"+L,"ul"+L,0)},
+      {p:[x0*.97,.43,.004], rx:.076, rz:.082, w:W("ul"+L,"ul"+L,0)},
+      {p:[x0*.95,.35,.008], rx:.066, rz:.072, w:W("ul"+L,"ll"+L,.5)},
+      {p:[x0*.95,.29,0], rx:.064, rz:.07, w:W("ll"+L,"ll"+L,0)},
+      {p:[x0*.96,.21,-.006], rx:.066, rz:.072, w:W("ll"+L,"ll"+L,0)},
+      {p:[x0*.97,.12,0], rx:.05, rz:.054, w:W("ll"+L,"ll"+L,0)},
+      {p:[x0*.97,.07,0], rx:.046, rz:.05, w:W("ll"+L,"foot"+L,.5)}
+    ], S, pantsF, false, true);
+    mb.tube([                                                     // shoe, toe forward
+      {p:[x0*.97,.04,-.055], rx:.04, rz:.03, w:W("foot"+L,"foot"+L,0)},
+      {p:[x0*.97,.045,-.01], rx:.046, rz:.042, w:W("foot"+L,"foot"+L,0)},
+      {p:[x0*.97,.035,.06], rx:.046, rz:.032, w:W("foot"+L,"foot"+L,0)},
+      {p:[x0*.97,.028,.115], rx:.036, rz:.022, w:W("foot"+L,"foot"+L,0)}
+    ], S, shoeF, true, true);
+  });
+  mb.tube([                                                       // pelvis
+    {p:[0,.555,0], rx:.035, rz:.035, w:W("hips","hips",0)},
+    {p:[0,.585,0], rx:.1, rz:.07, w:W("hips","hips",0)},
+    {p:[0,.625,0], rx:bd.hp*.9, rz:.094, w:W("hips","hips",0)},
+    {p:[0,.70,0], rx:bd.hp, rz:.104, w:W("hips","hips",0)},
+    {p:[0,.79,0], rx:bd.wa*.98, rz:.098, w:W("hips","spine",.3)}
+  ], ST, pantsF, true, true);
+  const topF = fit.top;
+  {                                                               // torso, resampled every 3 cm
+    const K = [[.74,bd.hp*1.02,.112,0],[.80,bd.wa*1.03,.11,0],[.90,bd.wa,.106,.004],[1.0,(bd.wa+bd.ch)/2,.112,.008],[1.1,bd.ch*.97,.122,.012],
+               [1.18,bd.ch,.124,.01],[1.25,bd.sh*.93,.114,0],[1.3,bd.sh*.76,.098,-.004],[1.335,.1,.075,-.006],[1.35,.062,.056,-.006]];
+    const tw = (y)=> y<.86 ? W("hips","spine",Math.max(0,(y-.74)/.12)) : y<.96 ? W("spine","spine",0) : y<1.08 ? W("spine","chest",(y-.96)/.12)
+                    : y<1.32 ? W("chest","chest",0) : W("chest","neck",Math.min(.5,(y-1.32)/.06));
+    const rings = [];
+    for (let k=0;k<K.length-1;k++){ const A = K[k], Bk = K[k+1], n = Math.max(1, Math.round((Bk[0]-A[0])/.03));
+      for (let q=0;q<n;q++){ const t = q/n, y = A[0]+(Bk[0]-A[0])*t;
+        rings.push({p:[0,y,A[3]+(Bk[3]-A[3])*t], rx:A[1]+(Bk[1]-A[1])*t, rz:A[2]+(Bk[2]-A[2])*t, w:tw(y)}); } }
+    const Z = K[K.length-1]; rings.push({p:[0,Z[0],Z[3]], rx:Z[1], rz:Z[2], w:tw(Z[0])});
+    mb.tube(rings, ST, topF, true, true);
+  }
+  if (bd.coat) mb.tube([                                          // trench coat skirt
+    {p:[0,.86,0], rx:bd.wa*1.08, rz:.118, w:W("hips","hips",0)},
+    {p:[0,.62,-.004], rx:bd.hp*1.16, rz:.142, w:W("hips","hips",0)},
+    {p:[0,.36,-.01], rx:bd.hp*1.3, rz:.162, w:W("hips","hips",0)}
+  ], ST, topF, false, false);
+  mb.tube([                                                       // neck
+    {p:[0,1.29,-.005], rx:.05, rz:.05, w:W("chest","chest",0)},
+    {p:[0,1.37,0], rx:.047, rz:.049, w:W("chest","neck",.6)},
+    {p:[0,1.43,.004], rx:.045, rz:.047, w:W("neck","neck",0)},
+    {p:[0,1.5,.006], rx:.046, rz:.046, w:W("neck","head",.7)}
+  ], S, skinF, false, true);
+  [-1,1].forEach(s=>{
+    const L = s<0 ? "L" : "R", ax = s*(bd.sh+.015), ar = bd.ar || 1;
+    mb.tube([                                                     // sleeve
+      {p:[ax-s*.006,1.318,0], rx:.022*ar, rz:.024*ar, w:W("chest","ua"+L,.5)},
+      {p:[ax-s*.003,1.302,0], rx:.048*ar, rz:.052*ar, w:W("chest","ua"+L,.6)},
+      {p:[ax,1.27,0], rx:.06*ar, rz:.064*ar, w:W("ua"+L,"ua"+L,0)},
+      {p:[ax,1.15,0], rx:.054*ar, rz:.058*ar, w:W("ua"+L,"ua"+L,0)},
+      {p:[ax,1.03,0], rx:.048*ar, rz:.051*ar, w:W("ua"+L,"ua"+L,0)},
+      {p:[ax,.99,0], rx:.047*ar, rz:.05*ar, w:W("ua"+L,"la"+L,.5)},
+      {p:[ax,.95,.002], rx:.046*ar, rz:.049*ar, w:W("la"+L,"la"+L,0)},
+      {p:[ax,.85,.004], rx:.041*ar, rz:.043*ar, w:W("la"+L,"la"+L,0)},
+      {p:[ax,.795,.004], rx:.039*ar, rz:.041*ar, w:W("la"+L,"hand"+L,.4)}
+    ], SA, (x,y,z)=>topF(x,y,z,"sleeve"), true, true);
+    const hx = ax, H = "hand"+L;
+    mb.tube([                                                     // wrist and palm
+      {p:[hx,.81,.004], rx:.022, rz:.03, w:W("la"+L,"la"+L,0)},
+      {p:[hx,.775,.004], rx:.021, rz:.034, w:W("la"+L,H,.7)},
+      {p:[hx,.735,.004], rx:.02, rz:.04, w:W(H,H,0)},
+      {p:[hx-s*.002,.7,.004], rx:.017, rz:.039, w:W(H,H,0)}
+    ], SA, skinF, false, true);
+    [[-.026,.03],[-.009,.036],[.009,.034],[.025,.027]].forEach(f=>{   // fingers, curled toward the thigh
+      const fz = .004+f[0], len = f[1];
+      mb.tube([
+        {p:[hx-s*.003,.71,fz], rx:.0095, rz:.0095, w:W(H,H,0)},
+        {p:[hx-s*.006,.71-len*.55,fz], rx:.0088, rz:.0088, w:W(H,H,0)},
+        {p:[hx-s*.016,.71-len,fz], rx:.0078, rz:.0078, w:W(H,H,0)}
+      ], SF, skinF, false, true);
+    });
+    mb.tube([                                                     // thumb
+      {p:[hx-s*.004,.765,.03], rx:.012, rz:.012, w:W(H,H,0)},
+      {p:[hx-s*.01,.735,.048], rx:.011, rz:.011, w:W(H,H,0)},
+      {p:[hx-s*.018,.712,.05], rx:.0095, rz:.0095, w:W(H,H,0)}
+    ], SF, skinF, false, true);
+  });
+  const bodyMat = reg(new THREE.MeshStandardMaterial({vertexColors:true, roughness:.86, metalness:0, transparent:true}), C3("#ffffff"));
+  const body = new THREE.SkinnedMesh(mb.build(true), bodyMat);
+  body.frustumCulled = false; root.add(body);
+  g.updateMatrixWorld(true);
+  body.bind(new THREE.Skeleton(list));
+
+  // head
+  const hs = new THREE.Group(); hs.scale.setScalar(.9); hg.add(hs);
+  const HW = LQ ? 512 : 1024;
+  const hcv = document.createElement("canvas"); hcv.width = HW; hcv.height = HW/2;
+  const hctx = hcv.getContext("2d");
+  const fcv = document.createElement("canvas"); fcv.width = fcv.height = LQ ? 256 : 512;
+  const fctx = fcv.getContext("2d");
+  const htex = new THREE.CanvasTexture(hcv); htex.anisotropy = 4;
+  // warm emissive lift through the same face map: keeps the shadow side of the face skin-toned instead of grey
+  const headMat = reg(new THREE.MeshStandardMaterial({map:htex, emissiveMap:htex, emissive:new THREE.Color(.16,.11,.09), roughness:.72, metalness:0, transparent:true, color:new THREE.Color(SKIN_K,SKIN_K,SKIN_K)}));
+  const head = new THREE.Mesh(sculptHead(LQ ? 40 : 56, 0), headMat); hs.add(head);
+  const skinM = reg(new THREE.MeshStandardMaterial({color:skinC, emissive:C3(cfg.skin).multiply(new THREE.Color(.16,.11,.09)), roughness:.72, transparent:true}));
+  const ear=(x)=>{ const e=sph(.03,skinM,x,-.01,-.012); e.scale.set(.42,1,.78); hs.add(e); }; ear(-.15); ear(.15);
+  // hair: one shell just outside the head with its coverage painted in the same UV space as the face,
+  // so hairlines curve (side part, fringe, temples, sideburns) instead of ending on straight lines
+  const hairC = id==="david" ? "#191613" : cfg.hairC;
+  const HSTY = HAIR3D[id] || HAIR3D.short;
+  const hairTex = hairTexture(HSTY, hairC, LQ ? 512 : 1024, id.length*13);
+  const hair = reg(new THREE.MeshStandardMaterial({map:hairTex, alphaTest:.5, transparent:true, roughness:.78, metalness:0}), C3("#ffffff"));
+  const hairMesh = new THREE.Mesh(hairGeometry(HSTY, LQ ? 36 : 48), hair);
+  hairMesh.position.set(0,.002,-.003); hs.add(hairMesh);
+  const hairSolid = reg(new THREE.MeshStandardMaterial({color:C3(hairC), roughness:.6, transparent:true}));
+  if (id==="sarah"){                                  // length past the shoulders
+    const fall=new THREE.Mesh(new THREE.CapsuleGeometry(.105,.2,4,12),hairSolid); fall.scale.set(1.12,1,.4);
+    fall.position.set(0,-.25,-.112); hs.add(fall);
+  } else if (id==="assessor"||id==="worker"){         // low bun
+    hs.add(sph(.066,hairSolid,0,-.03,-.19));
+  } else if (id==="stranger"){                        // fedora
+    const hatM = reg(new THREE.MeshStandardMaterial({color:C3("#1A1B20"), roughness:.8, transparent:true}));
+    const hat = new THREE.Group(); hat.position.set(0,.135,-.004); hat.rotation.set(-.1,0,.05); hs.add(hat);
+    hat.add(cyl(.128,.152,.12,hatM,0,.06,0,24), cyl(.252,.252,.012,hatM,0,0,0,32));
+    hat.add(cyl(.154,.154,.028,reg(new THREE.MeshStandardMaterial({color:C3("#3A2E24"),roughness:.7,transparent:true})),0,.016,0,24));
+  }
+  if (id==="david"){                                  // wire glasses sitting on the modelled eye line
+    const gm = reg(new THREE.MeshStandardMaterial({color:C3("#202024"), roughness:.4, metalness:.5, transparent:true}));
+    [-1,1].forEach(s=>{ const yaw=s*.27, pt=-.04, rr=HEAD_R+.017;
+      const o=new THREE.Mesh(new THREE.TorusGeometry(.034,.0045,6,20),gm);
+      o.position.set(Math.sin(yaw)*Math.cos(pt)*rr*HEAD_S[0], Math.sin(pt)*rr*HEAD_S[1], Math.cos(yaw)*Math.cos(pt)*rr*HEAD_S[2]);
+      o.rotation.y=yaw*.6; o.scale.set(1,.78,1); hs.add(o); });
+    const br=cyl(.004,.004,.05,gm,0,Math.sin(-.04)*HEAD_R*HEAD_S[1],(HEAD_R+.014)*HEAD_S[2]); br.rotation.z=Math.PI/2; hs.add(br);
+  }
   const rim=new THREE.PointLight(cfg.rim,.7,2.6); rim.position.set(.5,1.8,-.5); g.add(rim);
-  g.traverse(o=>{ if(o.isMesh) o.castShadow=true; });
-  return {group:g, mats, rim, fctx, ftex, cfg, style:HAIRLINES[id]||"short",
-    bones, anim:makeAnim(bones),
+  const blob=new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({map:blobTex(),transparent:true,depthWrite:false,opacity:.7}));
+  blob.rotation.x=-Math.PI/2; blob.position.y=.012; blob.scale.set(.95,.7,1); blob.renderOrder=1; g.add(blob);
+  g.traverse(o=>{ if(o.isMesh && o!==blob) o.castShadow=true; });
+  return {group:g, mats, rim, fctx, hctx, htex, cfg, style:HAIRLINES[id]||"short",
+    bones, anim:makeAnim(bones), blob, hairShade:hairTex.userData.shade,
     headGrp:hg, armR:uaR, armL:uaL, mood:"calm", _open:false,
     blinkT:-1, blinkNext:2+Math.random()*4, sacT:0, sacX:0, sacY:0,
     lookW:0, lookYaw:0, lookPitch:0, lookTarget:null,
     refreshFace(){
       const lid = this.blinkT>=0 ? Math.sin(Math.min(1,this.blinkT/0.13)*Math.PI) : 0;
-      drawFace(this.fctx,this.cfg,this.mood,this.style,this._open,lid,this.sacX,this.sacY);
-      this.ftex.needsUpdate=true;
+      drawFace(this.fctx,this.cfg,this.mood,"none",this._open,lid,this.sacX,this.sacY);
+      const c = this.hctx, W = c.canvas.width, H = c.canvas.height;
+      c.fillStyle = this.cfg.skin; c.fillRect(0,0,W,H);
+      c.drawImage(this.fctx.canvas, FACE_U0*W, FACE_V0*H, FACE_UW*W, FACE_VH*H);
+      if (this.hairShade) c.drawImage(this.hairShade, 0, 0, W, H);   // soft contact shade under the hairline
+      this.htex.needsUpdate = true;
     },
     setMood(mood){ this.mood=mood; this._open=false; this.refreshFace(); },
     setMouth(open){ this._open=open; this.refreshFace(); },
-    setDim(d){ this.mats.forEach(m=>{ m.color.copy(m.userData.base).multiplyScalar(d?0.38:1); }); this.rim.intensity=d?0.15:0.7; },
-    setAlpha(a){ this.mats.forEach(m=>{ m.opacity=a; }); this.rim.intensity=Math.min(.7,a*.7); }
+    setDim(d){ this.mats.forEach(m=>{ m.color.copy(m.userData.base).multiplyScalar(d?0.38:1);
+      if (m.userData.emi) m.emissive.copy(m.userData.emi).multiplyScalar(d?0.38:1); }); this.rim.intensity=d?0.15:0.7; },
+    setAlpha(a){ this.mats.forEach(m=>{ m.opacity=a; }); this.rim.intensity=Math.min(.7,a*.7); this.blob.material.opacity=a*.7; }
   };
 }
 
@@ -1166,13 +1654,72 @@ lab(){ const sc=baseWorld(0x0E181E,6,30);
 }
 };
 
+// --- art direction: one palette and lighting rig shared by every set ---
+// sky: [top, horizon] painted backdrop; amb: scale on the set's own ambient light;
+// key / fill / rim: [color, intensity]. Cool key, warm fill, cool rim, sodium-amber practicals.
+const PAL = {
+  void:     {sky:["#04050A","#0E1424"], amb:.6,  key:["#B8C8E0",.55], fill:["#E0A070",.22], rim:["#6FBFCF",.55]},
+  apartment:{sky:["#080B14","#171D2C"], amb:.55, key:["#C4D0E4",.62], fill:["#E6A866",.30], rim:["#86B4D6",.55]},
+  street:   {sky:["#05070F","#232A40"], amb:.5,  key:["#B4C4DE",.6],  fill:["#E6A452",.32], rim:["#94BCE4",.6]},
+  office:   {sky:["#080C12","#1C2430"], amb:.5,  key:["#D0DCE8",.62], fill:["#E6AC6C",.26], rim:["#6FBFCF",.5]},
+  cafe:     {sky:["#0E0A06","#2A2014"], amb:.55, key:["#F0CC96",.5],  fill:["#E09A4C",.26], rim:["#80A8CC",.55]},
+  diner:    {sky:["#0B0805","#2A1F12"], amb:.55, key:["#ECC690",.5],  fill:["#DC8E44",.26], rim:["#809FD2",.6]},
+  dream:    {sky:["#05060E","#141A30"], amb:.6,  key:["#AECCEA",.5],  fill:["#CC9C7C",.22], rim:["#6FBFCF",.65]},
+  tunnels:  {sky:["#080603","#21180C"], amb:.6,  key:["#ECBC74",.42], fill:["#CC8C4C",.22], rim:["#7494B4",.55]},
+  stairwell:{sky:["#070805","#1B1E12"], amb:.7,  key:["#D4DCB4",.42], fill:["#CCA474",.2],  rim:["#8498A4",.5]},
+  conf:     {sky:["#060A10","#18222C"], amb:.5,  key:["#CCDEEA",.6],  fill:["#E6AC6C",.24], rim:["#6FBFCF",.55]},
+  lab:      {sky:["#050A0E","#13212A"], amb:.5,  key:["#BCE2EE",.56], fill:["#DCA474",.24], rim:["#6FBFCF",.62]}
+};
+function skyTex(top, hor){ return canvasTex(16,256,(c,w,h)=>{
+  const g=c.createLinearGradient(0,0,0,h); g.addColorStop(0,top); g.addColorStop(.62,hor); g.addColorStop(1,top);
+  c.fillStyle=g; c.fillRect(0,0,w,h); }); }
+let GRIME = null;
+function grimeTex(){ if (GRIME) return GRIME;
+  GRIME = canvasTex(256,256,(c,w,h)=>{
+    c.fillStyle="#fff"; c.fillRect(0,0,w,h);
+    for(let i=0;i<900;i++){ const x=R(i)*w, y=R(i*3+1)*h, r=2+R(i*7)*18;           // soft blotches
+      c.fillStyle="rgba(40,36,30,"+(0.025+R(i*11)*0.05)+")"; c.beginPath(); c.arc(x,y,r,0,7); c.fill(); }
+    for(let i=0;i<60;i++){ const x=R(i*13)*w, len=30+R(i*17)*140;                    // water streaks
+      c.fillStyle="rgba(30,28,24,"+(0.03+R(i*19)*0.05)+")"; c.fillRect(x,R(i*23)*h*.4,1+R(i*29)*3,len); }
+    const g=c.createLinearGradient(0,0,0,h); g.addColorStop(0,"rgba(0,0,0,0)"); g.addColorStop(1,"rgba(0,0,0,.22)");
+    c.fillStyle=g; c.fillRect(0,0,w,h);
+  });
+  GRIME.wrapS = GRIME.wrapT = THREE.RepeatWrapping; return GRIME; }
+function artDirect(name, w){
+  const P = PAL[name] || PAL.void, sc = w.scene;
+  sc.background = skyTex(P.sky[0], P.sky[1]);
+  if (sc.fog) sc.fog.color.set(P.sky[1]);
+  sc.traverse(o=>{
+    if (o.isAmbientLight) o.intensity *= P.amb * .5;   // low ambient: the rig below does the modelling
+    if (o.isMesh && o.material && o.material.isMeshStandardMaterial && !o.material.map){
+      const gp = o.geometry.parameters || {};
+      const big = Math.max(gp.width||0, gp.height||0, gp.depth||0) > 1.4 || (gp.radiusTop||0) > 1;
+      if (big && !o.material.userData.grimed){ o.material.userData.grimed = true;
+        o.material.map = grimeTex(); o.material.color.multiplyScalar(1.15); o.material.needsUpdate = true; }
+      if (o.geometry.type === "PlaneGeometry" || o.geometry.type === "BoxGeometry") o.receiveShadow = true;
+    }
+  });
+  const C = w.anchors.C;
+  const key = new THREE.DirectionalLight(P.key[0], P.key[1] * 1.7);
+  key.position.set(C.x+4.2, 4.4, C.z+2.0); key.target.position.set(C.x, .9, C.z);
+  key.castShadow = true; setShadowRes(key);
+  const sc2 = key.shadow.camera; sc2.left=-4.5; sc2.right=4.5; sc2.top=4; sc2.bottom=-2; sc2.near=.5; sc2.far=14;
+  key.shadow.bias = -0.0006; key.shadow.normalBias = 0.02;
+  const fill = new THREE.DirectionalLight(P.fill[0], P.fill[1] * 1.2);
+  fill.position.set(C.x-3.2, 1.8, C.z+2.6); fill.target.position.set(C.x, 1.2, C.z);
+  const rim = new THREE.DirectionalLight(P.rim[0], P.rim[1] * 1.2);
+  rim.position.set(C.x-1.2, 3.6, C.z-4.5); rim.target.position.set(C.x, 1.3, C.z);
+  sc.add(key, key.target, fill, fill.target, rim, rim.target);
+  w.key = key;
+  return w;
+}
 function setWorld(bg){
   bg = BUILDERS[bg] ? bg : "void";
   if (curBg === bg && world) return;
   // location change is a hard cut: nobody walks between sets
   Object.keys(castMap).forEach(removeRec);
   curBg = bg;
-  world = WORLDS[bg] || (WORLDS[bg] = BUILDERS[bg]());
+  world = WORLDS[bg] || (WORLDS[bg] = artDirect(bg, BUILDERS[bg]()));
   renderPassP.scene = world.scene; bokehPass.scene = world.scene;
   camera.position.copy(world.cam.pos); camLook.copy(world.cam.look);
   snapCam = true;
@@ -1182,6 +1729,13 @@ function setWorld(bg){
   veil.style.transition = "opacity .9s ease"; veil.style.opacity = "0";
 }
 
+// keep roughly the horizontal framing of the 16:9 design when the screen is taller than it is wide
+function portraitFov(fov){
+  const a = camera.aspect || 1.6;
+  if (a >= 1.2) return fov;
+  const widen = Math.min(GFX_PORTRAIT_FOV_CAP, 1.2 / a);
+  return 2 * Math.atan(Math.tan(fov * Math.PI / 360) * widen) * 180 / Math.PI;
+}
 let lastFrameMs = 0;
 function renderLoop(nowMs){
   requestAnimationFrame(renderLoop);
@@ -1203,14 +1757,16 @@ function renderLoop(nowMs){
   if (nowMs < glitchUntil){ _goalPos.x += (Math.random()-.5)*.12; _goalPos.y += (Math.random()-.5)*.08; }
   const k = snapCam ? 1 : 1 - Math.pow(0.955, dt*60);
   camera.position.lerp(_goalPos, k); camLook.lerp(_goalLook, k);
-  if (snapCam) camera.fov = goalFov; else camera.fov += (goalFov - camera.fov) * k;
+  const fovT = portraitFov(goalFov);
+  if (snapCam) camera.fov = fovT; else camera.fov += (fovT - camera.fov) * k;
   camera.updateProjectionMatrix();
   snapCam = false;
   camera.lookAt(camLook);
   // rack focus to the current subject; open the aperture during close-ups
   bokehPass.uniforms["focus"].value = camera.position.distanceTo(camLook);
-  const apGoal = curShot.name === "cu" ? 0.00032 : curShot.name === "osh" ? 0.00020 : 0.00009;
+  const apGoal = curShot.name === "cu" ? 0.00022 : curShot.name === "osh" ? 0.00016 : 0.00008;
   bokehPass.uniforms["aperture"].value += (apGoal - bokehPass.uniforms["aperture"].value) * 0.06;
+  gradePass.uniforms.uTime.value = RM ? 0 : nowMs/1000;
   composer.render();
 }
 
@@ -1484,7 +2040,7 @@ function shotGoal(){
     case "cu": {
       const p = castMap[aId].ch.group.position;
       return { pos:new THREE.Vector3(p.x*0.45, 1.62, p.z+1.5),
-               look:new THREE.Vector3(p.x*0.85, 1.5, p.z), fov:30 };
+               look:new THREE.Vector3(p.x*0.85, 1.38, p.z), fov:30 };
     }
     case "osh": {
       const dir = A.clone().sub(B); dir.y = 0; dir.normalize();
@@ -1496,7 +2052,7 @@ function shotGoal(){
     case "two": {
       const mid = B ? A.clone().add(B).multiplyScalar(0.5) : A.clone();
       return { pos:new THREE.Vector3(mid.x*0.4, 1.58, mid.z+2.7),
-               look:new THREE.Vector3(mid.x, 1.45, mid.z), fov:36 };
+               look:new THREE.Vector3(mid.x, 1.36, mid.z), fov:36 };
     }
     default:
       return { pos:world.cam.pos.clone(), look:world.cam.look.clone(), fov:38 };
@@ -1556,6 +2112,9 @@ function go(id){
   const n = STORY[id];
   if (!n){ console.error("missing node", id); return; }
   cur = id; page = 0;
+  $("scene").classList.toggle("panel", !(n.card || n.stats || n.ending) && id !== "title");
+  const em = /^e([1-5])card$/.exec(id); if (em) snapEpisode(+em[1]);
+  if (id === "co1") S.curEp = 0;
   if (n.card)   { renderCard(n); save(); return; }
   if (n.stats)  { renderStats(n); save(); return; }
   if (n.ending) { renderEnding(n); save(); return; }
@@ -1587,6 +2146,7 @@ function renderPage(){
   highlightCast(spk);
   const chunk = n.text[page];
   const plain = chunk.replace(/<[^>]+>/g,"");
+  histPush({spk: spk || "", txt: plain});
   const d = applyDirection(cur, page, spk);
   setTalking(spk, plain, d && d.clip);
   choicesEl.innerHTML = "";
@@ -1623,7 +2183,8 @@ function beginType(full, plain, onDone){
     onDone && onDone();
   };
   typeState = st;
-  if (RM || total < 4){ st.finish(); return; }
+  const SPEED = {slow:1, normal:2, fast:4}[SET.textSpeed];
+  if (RM || total < 4 || SET.textSpeed === "instant" || !SPEED){ st.finish(); return; }
   const renderPartial = ()=>{
     let left = st.shown, html = "";
     for (const p of paras){
@@ -1635,7 +2196,7 @@ function beginType(full, plain, onDone){
   };
   renderPartial();
   st.timer = setInterval(()=>{
-    st.shown = Math.min(total, st.shown + 2);
+    st.shown = Math.min(total, st.shown + SPEED);
     renderPartial();
     if (st.shown >= total) st.finish();
   }, 24);
@@ -1727,15 +2288,18 @@ function renderChoices(n){
     b.onclick = ()=>pick(o, n);
     choicesEl.appendChild(b);
   });
-  if (n.timer){
+  if (n.timer && SET.timer !== "off"){
     timerWrap.style.display = "block";
-    const total = n.timer * 1000, t0 = performance.now();
+    const secs = n.timer * (SET.timer === "relaxed" ? 2 : 1);
+    const total = secs * 1000;
+    let elapsed = 0, tPrev = performance.now();
     timerBar.style.width = "100%";
-    let lastSec = n.timer;
+    let lastSec = secs;
     timerId = setInterval(()=>{
-      const left = Math.max(0, 1 - (performance.now()-t0)/total);
+      const tNow = performance.now(); if (!PAUSED) elapsed += tNow - tPrev; tPrev = tNow;
+      const left = Math.max(0, 1 - elapsed/total);
       timerBar.style.width = (left*100) + "%";
-      const sec = Math.ceil(left*n.timer);
+      const sec = Math.ceil(left*secs);
       if (sec !== lastSec){ lastSec = sec; if (sec <= 5 && sec > 0) AU.sfx("tick"); }
       if (left <= 0){
         clearTimer();
@@ -1747,6 +2311,7 @@ function renderChoices(n){
 }
 function pick(o, n, timedOut){
   clearTimer();
+  histPush({pick: timedOut ? "(You stayed silent.)" : String(o.t).replace(/<[^>]+>/g,"")});
   AU.sfx("click");
   if (o.silent || timedOut){ S.silence++; }
   if (o.fx) fx(o.fx);
@@ -1817,7 +2382,7 @@ function runSeq(n){
       return;
     }
     keyEl.textContent = KEYS[step][1]; keyEl.className = "key";
-    subEl.textContent = "RUN — PRESS THE ARROW / TAP  ·  " + (step+1) + " OF " + KEYS.length;
+    subEl.textContent = "RUN: PRESS THE ARROW / TAP  ·  " + (step+1) + " OF " + KEYS.length;
     answered = false;
     windowT = setTimeout(()=>{
       if (answered) return;
@@ -1848,7 +2413,14 @@ function renderCard(n){
   overlay.appendChild(d);
   d.querySelectorAll("[data-go]").forEach(b=>{
     b.onclick = ()=>{ const t = b.getAttribute("data-go");
-      if (t === "__new"){ S = DEFAULT_STATE(); go("co1"); }
+      if (t === "__new"){
+        if (loadSave() && !b.classList.contains("confirm")){ b.classList.add("confirm"); b.textContent = "Start over? Tap again"; return; }
+        S = DEFAULT_STATE(); HIST.length = 0;
+        if (!SET.seenHelp){ SET.seenHelp = true; saveSettings(); openMenu("help", ()=>go("co1")); return; }
+        go("co1"); }
+      else if (t === "__episodes"){ openMenu("episodes"); }
+      else if (t === "__help"){ openMenu("help"); }
+      else if (t === "__settings"){ openMenu("settings"); }
       else if (t === "__continue"){ const sv = loadSave(); if (sv && sv.cur && sv.cur !== "title"){ S = sv.S; go(sv.cur); } }
       else go(t); };
   });
@@ -1891,11 +2463,21 @@ function renderEnding(n){
   overlay.appendChild(d);
   const btn = d.querySelector("#endAgain");
   if (btn) btn.onclick = ()=>{ go("title"); };
+  const eb = d.querySelector("#endEpisodes");
+  if (eb) eb.onclick = ()=>openMenu("episodes");
 }
 
 // ---------- input ----------
 document.addEventListener("keydown", (e)=>{
+  if (e.key === "Escape"){
+    if (holdActive || qteId || $("sqte").style.display === "block") return;
+    e.preventDefault(); if (menuOpen()) closeMenu(); else openMenu("main"); return;
+  }
+  if (menuOpen()) return;
   if (e.key === " " || e.key === "Enter"){
+    const onBtn = document.activeElement && document.activeElement.closest && document.activeElement.closest("button,a");
+    if (onBtn && onBtn.id !== "more") return; // let the focused button handle it
+    if (!overlay.firstChild && typeState && !typeState.done){ e.preventDefault(); typeState.finish(); return; }
     if (moreEl.style.display !== "none" && !overlay.firstChild){ e.preventDefault(); advance(); }
   }
   const i = parseInt(e.key, 10);
@@ -1918,6 +2500,122 @@ function audioKick(){
 document.addEventListener("pointerdown", audioKick);
 document.addEventListener("keydown", audioKick);
 $("audioBtn").addEventListener("click", (e)=>{ e.stopPropagation(); AU.toggle(); });
+moreEl.addEventListener("click", (e)=>{ e.stopPropagation(); advance(); });
+$("menuBtn").addEventListener("click", (e)=>{ e.stopPropagation(); openMenu("main"); });
+// mouse/touch clicks on the top buttons should not leave focus there (Space would re-trigger them)
+$("topCtl").addEventListener("click", (e)=>{ const b = e.target.closest("button"); if (b && e.detail > 0) b.blur(); });
+// hide the top controls during "do not move" and button-mash moments so a stray tap cannot misfire
+setInterval(()=>{ $("topCtl").classList.toggle("hidden", !!(holdActive || qteId || $("sqte").style.display === "block" || (overlay.firstChild && cur !== "title"))); }, 200);
+
+// ============================================================
+//  MENU: resume, settings, history, how to play, episodes, restart, links
+// ============================================================
+const BOOK_URL = "https://www.amazon.com/dp/B0H2WK88X3";
+const AUTHOR_URL = "https://matthew-culwell-author-page.vercel.app";
+const BOOKLINKS = '<div class="booklinks"><a href="'+BOOK_URL+'" target="_blank" rel="noopener">Read the novel on Amazon</a>'+
+  '<a class="quiet" href="'+AUTHOR_URL+'" target="_blank" rel="noopener">More from Matthew Culwell</a></div>';
+const EP_NAMES = {1:"Surface Tension", 2:"The Weight of Watchers", 3:"Breadcrumbs and Broken Code", 4:"The Freedom Paradox", 5:"The Last Layer"};
+let menuAfter = null, menuReturnFocus = null;
+function menuOpen(){ return $("menuLayer").classList.contains("open"); }
+function openMenu(view, after){
+  if (!menuOpen()) menuReturnFocus = document.activeElement;
+  if (after !== undefined) menuAfter = after;
+  PAUSED = true;
+  $("menuLayer").classList.add("open");
+  renderMenu(view || "main");
+}
+function closeMenu(){
+  $("menuLayer").classList.remove("open");
+  PAUSED = false;
+  const f = menuAfter; menuAfter = null;
+  const rf = menuReturnFocus; menuReturnFocus = null;
+  if (f) f();
+  else if (rf && rf.focus && !rf.closest("#topCtl") && document.contains(rf)) try{ rf.focus(); }catch(e){}
+  else if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+}
+function segRow(label, key, opts){
+  return '<div class="setrow"><div class="lbl">'+label+'</div><div class="seg" data-key="'+key+'">'+
+    opts.map(o=>'<button type="button" data-val="'+o[0]+'" aria-pressed="'+(String(SET[key])===String(o[0]))+'">'+o[1]+'</button>').join("")+'</div></div>';
+}
+function inStory(){ const n = STORY[cur]; return !!(n && cur !== "title" && !n.ending); }
+function renderMenu(view){
+  const p = $("menuPanel"); let h = "";
+  const back = '<button class="mbtn" data-m="'+(inStory() ? "main" : "__close")+'">Back</button>';
+  if (view === "main"){
+    const snaps = loadEpSnaps(), ep = S.curEp;
+    h = '<h2>Paused</h2>'+
+      '<button class="mbtn" data-m="__close">Resume</button>'+
+      '<button class="mbtn" data-m="settings">Settings</button>'+
+      '<button class="mbtn" data-m="history">History</button>'+
+      '<button class="mbtn" data-m="help">How to Play</button>'+
+      (inStory() && ep && snaps[ep] ? '<button class="mbtn" data-m="__restartEp">Restart Episode '+ep+'</button>' : '')+
+      '<button class="mbtn" data-m="episodes">Episodes</button>'+
+      '<button class="mbtn" data-m="__title">Quit to Title (progress is saved)</button>'+ BOOKLINKS;
+  } else if (view === "settings"){
+    h = '<h2>Settings</h2>'+
+      segRow("Text speed", "textSpeed", [["slow","Slow"],["normal","Normal"],["fast","Fast"],["instant","Instant"]])+
+      segRow("Timed choices", "timer", [["normal","Normal"],["relaxed","Relaxed (2x time)"],["off","Off (no timer)"]])+
+      segRow("Sound", "sound", [[true,"On"],[false,"Off"]])+
+      segRow("Graphics", "gfx", [["auto","Auto"],["high","High"],["light","Light (phones)"]])+
+      '<p class="muted">Turning the timer off lets you take as long as you like. Silence is still always an option.</p>'+ back;
+  } else if (view === "history"){
+    const items = HIST.slice(-40).map(x=> x.pick ? '<div class="h-pick">&rsaquo; '+x.pick+'</div>' :
+      '<div>'+(x.spk ? '<div class="h-spk">'+x.spk+'</div>' : '')+'<div class="h-txt">'+x.txt.replace(/&/g,"&amp;").replace(/</g,"&lt;")+'</div></div>').join("");
+    h = '<h2>History</h2><div class="hist">'+(items || '<p class="muted">Nothing yet.</p>')+'</div>'+ back;
+  } else if (view === "help"){
+    h = '<h2>How to Play</h2><ul>'+
+      '<li><b>Advance:</b> click or tap anywhere, or press <kbd>Space</kbd> / <kbd>Enter</kbd>. The first press finishes the line, the next one continues.</li>'+
+      '<li><b>Choose:</b> click a choice or press <kbd>1</kbd> to <kbd>4</kbd>. When a bar drains under the choices, the choice is timed. If time runs out, Marcus stays silent. Silence is a choice and it counts.</li>'+
+      '<li><b>Explore:</b> glowing rings in a scene are things you can examine. Tap them.</li>'+
+      '<li><b>Action moments:</b> follow the prompt. Some ask you to tap rapidly, some to press the arrow shown, and some ask you to do nothing at all.</li>'+
+      '<li><b>Attention:</b> the meter at the top shows how closely the system is watching you.</li>'+
+      '<li><b>Menu:</b> press <kbd>Esc</kbd> or the MENU button to pause, change text speed or the timer, read the history, or restart an episode.</li>'+
+      '<li>Progress saves automatically. Use Continue on the title screen to pick up where you left off.</li></ul>'+
+      '<button class="mbtn" data-m="__close">'+(menuAfter ? "Begin" : "Got it")+'</button>'+
+      (menuAfter ? '' : '<button class="mbtn" data-m="settings">Settings</button>');
+  } else if (view === "episodes"){
+    const snaps = loadEpSnaps();
+    let rows = "";
+    for (let e=1; e<=5; e++){
+      const ok = !!snaps[e];
+      rows += '<button class="mbtn" data-ep="'+e+'"'+(ok ? '' : ' disabled')+'>Episode '+e+': '+EP_NAMES[e]+
+        '<small>'+(ok ? 'Play from the start of this episode' : 'Locked. Reach it in a playthrough to unlock')+'</small></button>';
+    }
+    const seen = loadEndings();
+    h = '<h2>Episodes</h2><div class="epi-list">'+rows+'</div>'+
+      '<p class="muted" style="margin-top:14px">Starting an episode uses the choices you had made when you first reached it. Endings found: '+seen.length+' of 4.</p>'+ back;
+  }
+  p.innerHTML = h;
+  p.querySelectorAll("[data-m]").forEach(b=>b.onclick = ()=>{
+    const m = b.getAttribute("data-m");
+    if (m === "__close") closeMenu();
+    else if (m === "__title"){ menuAfter = null; closeMenu(); go("title"); }
+    else if (m === "__restartEp"){ const sn = loadEpSnaps()[S.curEp]; if (sn){ menuAfter = null; closeMenu(); S = JSON.parse(JSON.stringify(sn)); HIST.length = 0; go("e"+S.curEp+"card"); } }
+    else renderMenu(m);
+  });
+  p.querySelectorAll("[data-ep]").forEach(b=>b.onclick = ()=>{
+    const e = +b.getAttribute("data-ep"), sn = loadEpSnaps()[e]; if (!sn) return;
+    menuAfter = null; closeMenu(); S = JSON.parse(JSON.stringify(sn)); HIST.length = 0; go("e"+e+"card");
+  });
+  p.querySelectorAll(".seg").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick = ()=>{
+    const k = g.getAttribute("data-key"); let v = b.getAttribute("data-val");
+    if (k === "sound"){ v = (v === "true"); if (v !== AU.on) AU.toggle(); }
+    SET[k] = v; saveSettings(); if (k === "gfx") applyGfx(); renderMenu(view);
+    const nb = $("menuPanel").querySelector('.seg[data-key="'+k+'"] button[data-val="'+String(v)+'"]'); if (nb) nb.focus();
+  }));
+  const first = p.querySelector("button:not([disabled]), a"); if (first) first.focus();
+}
+$("menuLayer").addEventListener("click", (e)=>{ if (e.target.id === "menuLayer") closeMenu(); });
+// focus trap inside the menu
+$("menuLayer").addEventListener("keydown", (e)=>{
+  if (e.key !== "Tab") return;
+  const f = [...$("menuPanel").querySelectorAll("button:not([disabled]), a")]; if (!f.length) return;
+  const i = f.indexOf(document.activeElement);
+  if (e.shiftKey && i <= 0){ e.preventDefault(); f[f.length-1].focus(); }
+  else if (!e.shiftKey && i === f.length-1){ e.preventDefault(); f[0].focus(); }
+});
+// apply saved sound preference
+if (!SET.sound){ AU.on = false; $("audioBtn").textContent = "SOUND: OFF"; }
 
 // ============================================================
 //  STORY
@@ -1933,9 +2631,16 @@ title: { card:true, html(){
   '<h1>The Distopia<span class="thin">Layers of Truth</span></h1>'+
   '<div class="note">Based on the novel by Matthew Culwell · Iteration 848</div>'+
   '<div class="note" style="margin-top:4px">Your choices are recorded. People will live or disappear because of them.</div>'+
-  (sv && sv.cur && sv.cur !== "title" ? '<button class="mbtn" data-go="__continue">Resume Iteration</button>' : '')+
+  '<div class="menu">'+
+  (sv && sv.cur && sv.cur !== "title" ? '<button class="mbtn" data-go="__continue">Continue</button>' : '')+
   '<button class="mbtn" data-go="__new">New Iteration</button>'+
-  '<div class="note" style="margin-top:26px">Headphones recommended · Timed choices — silence is also a choice</div>';
+  (Object.keys(loadEpSnaps()).length ? '<button class="mbtn" data-go="__episodes">Episodes</button>' : '')+
+  '<button class="mbtn" data-go="__help">How to Play</button>'+
+  '<button class="mbtn" data-go="__settings">Settings</button>'+
+  '</div>'+
+  (loadEndings().length ? '<div class="tinfo">Endings found: '+loadEndings().length+' of 4</div>' : '')+
+  '<div class="note" style="margin-top:22px">Headphones recommended · Timed choices: silence is also a choice</div>'+
+  BOOKLINKS;
 }},
 
 // ---------------- COLD OPEN ----------------
@@ -2774,11 +3479,14 @@ function endHTML(title, sub, paras, S){
     '<div class="statrows">'+paras.map(p=>'<div class="srow"><div class="lbl">'+p+'</div></div>').join("")+
     '<div class="srow" style="margin-top:10px">'+epilogue+stats+'</div></div>'+
     '<div class="note" style="margin-top:30px">Based on the novel &ldquo;The Distopia: Layers of Truth&rdquo; by Matthew Culwell</div>'+
-    '<button class="mbtn" id="endAgain">Return to Title · Begin Iteration 849</button>';
+    '<div class="note" style="margin-top:14px">The story continues in the book. Marcus\'s full journey is in the Dystopia series.</div>'+
+    BOOKLINKS+
+    '<button class="mbtn" id="endAgain">Return to Title · Begin Iteration 849</button>'+
+    '<button class="mbtn" id="endEpisodes" style="margin-top:10px">Episodes</button>';
 }
 
 // ---------- boot ----------
-resize3d();
+applyGfx();
 requestAnimationFrame(renderLoop);
 go("title");
 </script>
