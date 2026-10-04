@@ -375,6 +375,115 @@
     .bar{flex-basis:20px}
     .corner{display:none}
   }
+
+  /* ============ TELLTALE PRESENTATION LAYER ============
+     Subtitles instead of a text box, a choice bar along the bottom with keycaps and a draining timer,
+     letterbox bars that close in on close-ups and open up while you choose. */
+  .bar{flex-basis:0 !important}
+  #stage.cine #lbTop{height:8vh} #stage.cine #lbBot{height:10vh}
+  #stage.cine.tight #lbTop{height:11vh} #stage.cine.tight #lbBot{height:13vh}
+  #stage.cine.choosing #lbTop{height:5vh} #stage.cine.choosing #lbBot{height:4vh}
+  #hud{top:2.6vh;transform:translateY(-50%)}
+  #lowerShade{height:42%;background:linear-gradient(180deg, transparent, rgba(4,3,2,.35) 40%, rgba(4,3,2,.82))}
+  #scene,#scene.panel{width:min(1120px,96%);background:none;border:none;box-shadow:none;
+    -webkit-backdrop-filter:none;backdrop-filter:none;padding:0 0 2.4vh;margin:0 auto;text-align:center;border-radius:0}
+  #speaker{text-align:center;margin-bottom:6px;font-size:13px;letter-spacing:.24em;min-height:0;
+    text-shadow:0 0 4px #000,0 0 10px #000,0 2px 3px #000}
+  #text{max-width:60ch;margin:0 auto;min-height:0;font-family:var(--sans);font-weight:500;
+    font-size:clamp(16px,2.25vmin,21px);line-height:1.5;color:#F6F1E6;
+    text-shadow:1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,0 0 8px #000,0 3px 10px rgba(0,0,0,.9)}
+  #text p + p{margin-top:.45em}
+  #scene.narr #text{font-style:italic;color:#E6DECD}
+  #scene.panel #more,#more{text-align:center;margin:6px auto 0;width:auto;display:none;padding:6px 14px;min-height:34px;
+    color:#BDB5A6;text-shadow:0 0 6px #000}
+  #choices{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:16px}
+  .choice{flex:1 1 0;min-width:0;max-width:290px;text-align:center;font-size:15px;line-height:1.3;
+    padding:16px 14px 13px;background:rgba(9,7,5,.84);border:2px solid rgba(233,228,216,.24);border-left:2px solid rgba(233,228,216,.24);
+    border-radius:4px;color:#F4EEE2;position:relative;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:4px;box-shadow:0 6px 18px rgba(0,0,0,.55)}
+  .choice:hover,.choice:focus-visible{border-color:#F4EEE2;border-left-color:#F4EEE2;background:rgba(32,25,18,.92);
+    color:#FFF;transform:translateY(-2px)}
+  .choice kbd{position:absolute;top:-12px;left:50%;transform:translateX(-50%);margin:0;background:#0B0806;
+    border:2px solid rgba(233,228,216,.6);color:#F4EEE2;font-size:11px;padding:1px 7px;border-radius:3px}
+  .choice.silent{color:#CFC7B8}
+  .choice .dots{font-size:26px;letter-spacing:.25em;line-height:.7;font-style:normal;padding-left:.25em}
+  .choice small{font-size:11px;color:#9A9284;font-style:italic;line-height:1.25}
+  .choice.picked{border-color:var(--amber) !important;background:rgba(70,50,20,.94);transform:scale(1.04)}
+  #choices.locked .choice{pointer-events:none}
+  #choices.locked .choice:not(.picked){opacity:.18;transition:opacity .25s}
+  #timerWrap{height:5px;background:transparent;margin:14px auto 0;width:min(880px,92%)}
+  #timerBar{margin:0 auto;background:#F4EEE2;box-shadow:0 0 10px rgba(255,236,200,.55);border-radius:3px;transition:width .09s linear}
+  #timerBar.low{background:#E0623E;box-shadow:0 0 12px rgba(224,98,62,.7)}
+  #toasts{top:calc(8vh + 14px);left:26px}
+  .toast.rem{background:none;border:none;box-shadow:none;font-family:var(--sans);font-size:16px;letter-spacing:.01em;
+    padding:6px 0 6px 38px;color:#F4EEE2;position:relative;
+    text-shadow:1px 1px 0 #000,-1px -1px 0 #000,0 0 8px #000,0 2px 8px #000}
+  .toast.rem::before{content:"";position:absolute;left:3px;top:50%;width:22px;height:22px;margin-top:-13px;
+    border:2px dashed currentColor;border-radius:50%;animation:remSpin 2.4s linear infinite}
+  .toast.rem::after{content:"";position:absolute;left:11px;top:50%;width:8px;height:8px;margin-top:-6px;border-radius:50%;background:currentColor}
+  .toast.rem.sarah{color:#CFE3B8} .toast.rem.vera{color:#BFE6EE} .toast.rem.system{color:#F0B8A8}
+  @keyframes remSpin{to{transform:rotate(360deg)}}
+  @media (max-width:640px){
+    #stage.cine #lbTop{height:6vh} #stage.cine #lbBot{height:7vh}
+    #stage.cine.tight #lbTop{height:8vh} #stage.cine.tight #lbBot{height:9vh}
+    #stage.cine.choosing #lbTop{height:4vh} #stage.cine.choosing #lbBot{height:3vh}
+    #hud{top:3vh}
+    #toasts{top:calc(6vh + 10px);left:14px}
+    #text{font-size:16px;line-height:1.45}
+    #choices{gap:12px 8px}
+    .choice{flex:1 1 calc(50% - 8px);max-width:none;font-size:14px;padding:15px 8px 11px}
+    .toast.rem{font-size:14px}
+  }
+
+  /* ---- episode presentation: disclaimer, "Previously on", title cards, choice summary ---- */
+  .card{background:radial-gradient(80% 80% at 50% 45%, #1A1511 0%, #080605 75%, #000 100%)}
+  .card.ttdisc{background:#000}
+  @media (max-width:640px){ .recapcap .mbtn{bottom:auto;top:calc(6vh + 8px);right:12px} }
+  .card.ttdisc .disc{font-family:var(--sans);font-size:clamp(17px,2.6vmin,24px);line-height:1.6;color:#EDE6D6;max-width:30ch;
+    animation:discIn 1.2s ease both}
+  .card.ttdisc .mbtn{margin-top:40px;border-color:#2A2520;color:#8E867A;font-size:11px;animation:discIn 1.2s .8s ease both}
+  @keyframes discIn{from{opacity:0}to{opacity:1}}
+  #stage.recap #bgc{filter:sepia(.55) saturate(.7) contrast(1.08) brightness(.92)}
+  #stage.recap::after{box-shadow:inset 0 0 180px 60px rgba(0,0,0,.75)}
+  .recapcap{position:absolute;left:0;right:0;bottom:0;top:0;z-index:50;pointer-events:none;display:flex;flex-direction:column;
+    justify-content:space-between;padding:calc(8vh + 18px) 6vw calc(10vh + 16px)}
+  .recapcap .rc-head{font-family:var(--serif);font-style:italic;font-size:clamp(22px,4vmin,38px);color:#F2EADB;
+    text-shadow:0 2px 12px #000,1px 1px 0 #000;animation:discIn .8s ease both}
+  .recapcap .rc-head small{display:block;font-family:var(--mono);font-style:normal;font-size:11px;letter-spacing:.4em;color:#C9A66B;margin-bottom:6px;text-transform:uppercase}
+  .recapcap .rc-cap{text-align:center;animation:discIn .6s ease both}
+  .recapcap .rc-ep{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:#C9A66B;text-transform:uppercase}
+  .recapcap .rc-lbl{font-family:var(--sans);font-weight:600;font-size:clamp(18px,2.8vmin,26px);color:#FFF6E6;margin-top:6px;
+    text-shadow:1px 1px 0 #000,-1px -1px 0 #000,0 0 10px #000}
+  .recapcap .rc-said{font-family:var(--sans);font-style:italic;font-size:clamp(14px,2vmin,17px);color:#E2D8C4;margin-top:6px;
+    text-shadow:0 0 8px #000,1px 1px 0 #000;max-width:60ch;margin-left:auto;margin-right:auto}
+  .recapcap .mbtn{pointer-events:auto;position:absolute;right:20px;bottom:calc(10vh + 14px);font-size:11px;padding:10px 14px;
+    background:rgba(0,0,0,.55)}
+  .card.epcard{background:radial-gradient(70% 60% at 50% 46%, #1D1712 0%, #0A0806 70%, #000 100%)}
+  .card.epcard .eyebrow{color:#C9A66B;letter-spacing:.6em;animation:discIn 1s ease both}
+  .card.epcard h1{font-size:clamp(34px,7.5vmin,72px);letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:#F1E8D6;
+    text-shadow:0 0 30px rgba(0,0,0,.9);animation:epIn 1.6s cubic-bezier(.2,.7,.2,1) both}
+  .card.epcard h1 .thin{letter-spacing:.3em;color:#B8AE9C;font-weight:400}
+  .card.epcard h1::after{content:"";display:block;height:3px;width:58%;margin:20px auto 0;background:linear-gradient(90deg,transparent,#A3402C 20%,#A3402C 80%,transparent);
+    animation:ruleIn 1.4s .5s ease both}
+  .card.epcard .note{animation:discIn 1.2s .9s ease both}
+  .card.epcard .mbtn{animation:discIn 1s 1.3s ease both;margin-top:34px;min-width:180px}
+  .card.epcard .note{max-width:52ch;font-style:italic;color:#CFC6B4}
+  @keyframes epIn{from{opacity:0;transform:scale(1.06);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+  @keyframes ruleIn{from{transform:scaleX(0)}to{transform:none}}
+  .stats.ttsum{background:radial-gradient(80% 70% at 50% 40%, #1A1511 0%, #090706 80%, #000 100%)}
+  .stats.ttsum .eyebrow{color:#C9A66B}
+  .stats.ttsum h2{text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .tc-list{width:min(640px,94%);display:flex;flex-direction:column;gap:12px}
+  .tc-row{display:flex;gap:16px;align-items:flex-start;background:rgba(12,10,8,.75);border:1px solid rgba(233,228,216,.14);
+    border-left:3px solid #C9A66B;padding:14px 16px;animation:rise .5s ease both}
+  .tc-row:nth-child(2){animation-delay:.12s}.tc-row:nth-child(3){animation-delay:.24s}.tc-row:nth-child(4){animation-delay:.36s}
+  .tc-row:nth-child(5){animation-delay:.48s}.tc-row:nth-child(6){animation-delay:.6s}
+  .tc-ix{font-family:var(--mono);font-size:12px;color:#0B0806;background:#E9E4D8;min-width:24px;height:24px;display:flex;
+    align-items:center;justify-content:center;border-radius:3px;margin-top:2px}
+  .tc-lbl{font-family:var(--sans);font-weight:600;font-size:16px;color:#F4EEE2}
+  .tc-said{font-family:var(--sans);font-style:italic;font-size:14px;color:#A89F90;margin-top:4px;line-height:1.45}
+  .tc-ep{font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:#C9A66B;margin:14px 0 2px;text-transform:uppercase}
+  .tc-note{font-family:var(--mono);font-size:11px;color:#7E776C;letter-spacing:.12em;margin-top:20px;text-align:center;max-width:52ch;line-height:1.6}
 </style>
 </head>
 <body>
@@ -486,7 +595,7 @@ function remember(who){
   const names = {vera:"Vera will remember that.", sarah:"Sarah will remember that.",
                  system:"The Purpose Engine has logged your response. It logs everything.",
                  david:"David will not remember that."};
-  toast(names[who] || who, who);
+  toast(names[who] || who, "rem " + who);
   AU.sfx("sting");
 }
 function anomaly(label){
@@ -499,12 +608,8 @@ function anomaly(label){
   toast("+ ANOMALY LOGGED №" + S.anomalies + (label ? ": " + label : ""), "anom");
   setTimeout(()=>c.classList.remove("on"), 4000);
 }
-function logChoice(ep, label){ S.log.push({ep, label}); }
-// deterministic pseudo "cohort" percentage (the 47 subjects)
-function cohortPct(str){
-  let h = 0; for (let i=0;i<str.length;i++){ h = (h*31 + str.charCodeAt(i)) >>> 0; }
-  return 29 + (h % 58);
-}
+function logChoice(ep, label, said){ S.log.push({ep, label, node:cur, said: said ? String(said).replace(/<[^>]+>/g,"") : ""}); }
+
 function save(){
   if (cur === "title") return; // never clobber a real save with the title screen
   const n = STORY[cur];
@@ -656,7 +761,7 @@ renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadow
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.12;
-const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 300);
+const camera = new THREE.PerspectiveCamera(38, 1, 0.15, 300);   // near plane at .15 keeps depth precise enough for ink lines
 const camLook = new THREE.Vector3(0, 1.3, 0);
 const _goalPos = new THREE.Vector3(), _goalLook = new THREE.Vector3();
 // post-processing: depth of field + bloom + gamma
@@ -676,12 +781,13 @@ const GradeShader = {
     "void main(){",
     "  vec3 c = texture2D(tDiffuse, vUv).rgb;",
     "  float l = dot(c, vec3(.299,.587,.114));",
-    "  c = mix(vec3(l), c, .86);",                                  // slightly desaturated
-    "  c = pow(max(c, 0.0), vec3(1.16));",                          // deeper mids, less pastel
-    "  c = mix(c, c*c*(3.0-2.0*c), .35);",                          // gentle S curve
+    "  c = mix(vec3(l), c, .7);",                                   // desaturated, comic-print colour
+    "  c = pow(max(c, 0.0), vec3(1.12));",                          // deeper mids, less pastel
+    "  c = mix(c, c*c*(3.0-2.0*c), .4);",                           // firm S curve
     "  float sh = 1.0 - smoothstep(0.0, .45, l), hi = smoothstep(.45, 1.0, l);",
-    "  c += vec3(-.010, .006, .022) * sh;",                         // teal-blue shadows
-    "  c *= mix(vec3(1.0), vec3(1.06, 1.0, .9), hi);",               // warm highlights
+    "  c *= vec3(1.04, 1.0, .91);",                                 // warm ochre cast over everything
+    "  c += vec3(.004, .0, -.008) * sh;",                           // brown, not blue, shadows
+    "  c *= mix(vec3(1.0), vec3(1.05, 1.0, .9), hi);",               // warmer highlights
     "  vec2 d = vUv - .5; d.x *= uAspect;",
     "  c *= mix(1.0 - uVig, 1.0, smoothstep(.95, .2, length(d)));",
     "  float g = hash(vUv * vec2(1711.0, 1033.0) + fract(uTime) * 91.7) - .5;",
@@ -690,7 +796,124 @@ const GradeShader = {
     "}"].join("\n")
 };
 const gradePass = new THREE.ShaderPass(GradeShader);
-composer.addPass(renderPassP); composer.addPass(bokehPass);
+// ============================================================
+//  COMIC LOOK: toon (stepped) shading everywhere, a screen-space ink pass (depth-edge outlines plus
+//  hatching in the darkest tones), inverted-hull outlines on characters, and a warm desaturated grade.
+// ============================================================
+// four texels over N.L in [-1,1]: deep shadow, shadow, mid tone, lit. A hard terminator at N.L = 0.
+const TOON_GRAD = (()=>{ const d = new Uint8Array([40,40,40,255, 48,48,48,255, 150,150,150,255, 212,212,212,255]);
+  const t = new THREE.DataTexture(d, 4, 1, THREE.RGBAFormat); t.minFilter = t.magFilter = THREE.NearestFilter;
+  t.generateMipmaps = false; t.needsUpdate = true; return t; })();
+const TOON_CACHE = new WeakMap();
+function toonMat(m, soft){
+  if (!m || !m.isMeshStandardMaterial) return m;
+  if (TOON_CACHE.has(m)) return TOON_CACHE.get(m);
+  const t = new THREE.MeshToonMaterial({ color:m.color.clone(), map:m.map, gradientMap:TOON_GRAD,
+    emissive:m.emissive.clone(), emissiveMap:m.emissiveMap, emissiveIntensity:m.emissiveIntensity,
+    transparent:m.transparent, opacity:m.opacity, alphaTest:m.alphaTest, side:m.side,
+    vertexColors:m.vertexColors, depthWrite:m.depthWrite, fog:m.fog });
+  t.userData = m.userData; t.name = m.name;
+  // characters get a softer ramp: same bands, but wide feathered transitions and a little of the
+  // continuous light mixed back in, so skin and cloth show one soft shadow shape instead of patches
+  if (soft){ t.defines = {SOFT_TOON:""}; t.onBeforeCompile = toonPatch; t.customProgramCacheKey = ()=>"lotToonSoft"; }
+  else { t.onBeforeCompile = toonPatch; t.customProgramCacheKey = ()=>"lotToon2"; }
+  TOON_CACHE.set(m, t); return t;
+}
+// lights add up smoothly, then the summed direct light is stepped once (log scale, so it holds in bright
+// and dark sets alike): one clean terminator instead of a patchwork from key, fill, rim and practicals
+function toonPatch(sh){
+  sh.fragmentShader = sh.fragmentShader
+    .replace("#include <gradientmap_pars_fragment>",
+      "vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ){ return vec3( max( dot( normal, lightDirection ), 0.0 ) ); }")
+    .replace("#include <lights_fragment_end>", [
+      "#include <lights_fragment_end>",
+      "{ vec3 dd = reflectedLight.directDiffuse;",
+      "  float base = max( dot( diffuseColor.rgb, vec3(.299,.587,.114) ), 1e-3 );",
+      "  float lum = max( dot( dd, vec3(.299,.587,.114) ) / base, 1e-4 );",
+      "  float k = log( lum ) / log( 2.6 );",
+      "#ifdef SOFT_TOON",
+      "  float n = floor( k ) + smoothstep( .18, .82, fract( k ) );",
+      "  float q = mix( pow( 2.6, n ) * 1.08, lum, .3 );",
+      "#else",
+      "  float n = floor( k ) + smoothstep( .4, .6, fract( k ) );",
+      "  float q = pow( 2.6, n ) * 1.08;",
+      "#endif",
+      "  reflectedLight.directDiffuse = dd * ( q / lum ); }"].join("\n"));
+}
+function toonify(root){ root.traverse(o=>{ if (o.isMesh && o.material){
+  o.material = Array.isArray(o.material) ? o.material.map(toonMat) : toonMat(o.material); } }); }
+
+// inverted-hull outline material for character meshes; width comes from a per-vertex attribute when
+// present (thin parts such as fingers get thin lines), otherwise from the uniform
+function outlineMat(width){
+  const m = new THREE.MeshBasicMaterial({color:0x0b0806, side:THREE.BackSide, transparent:true, fog:false});
+  m.userData.olw = width;
+  m.onBeforeCompile = (sh)=>{
+    sh.uniforms.uOlw = {value:width};
+    sh.vertexShader = sh.vertexShader
+      .replace("#include <common>", "#include <common>\nuniform float uOlw;\n#ifdef USE_OLW\nattribute float olw;\n#endif")
+      .replace("#include <begin_vertex>", "#ifdef USE_OLW\nvec3 transformed = position + normal * olw;\n#else\nvec3 transformed = position + normal * uOlw;\n#endif");
+  };
+  return m;
+}
+
+// screen-space ink: second derivative of linear depth finds silhouettes and creases; very dark tones get
+// diagonal hatching, the deepest get cross-hatching. Runs right after the scene render (it needs depth).
+class InkPass extends THREE.Pass {
+  constructor(){
+    super();
+    this.uniforms = { tDiffuse:{value:null}, tDepth:{value:null}, uRes:{value:new THREE.Vector2(1,1)},
+      cNear:{value:.15}, cFar:{value:300}, uThick:{value:1}, uHatch:{value:1}, uInk:{value:1} };
+    this.material = new THREE.ShaderMaterial({ uniforms:this.uniforms, depthTest:false, depthWrite:false,
+      vertexShader:"varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }",
+      fragmentShader:[
+        "uniform sampler2D tDiffuse, tDepth; uniform vec2 uRes; uniform float cNear, cFar, uThick, uHatch, uInk; varying vec2 vUv;",
+        "float lin(vec2 uv){ float d = texture2D(tDepth, uv).x; return (cNear*cFar) / (cFar - d*(cFar-cNear)); }",
+        "void main(){",
+        "  vec4 col = texture2D(tDiffuse, vUv); vec3 c = col.rgb;",
+        "  vec2 px = uThick / uRes;",
+        "  float z = lin(vUv);",
+        "  float zl = lin(vUv - vec2(px.x,0.)), zr = lin(vUv + vec2(px.x,0.)), zd = lin(vUv - vec2(0.,px.y)), zu = lin(vUv + vec2(0.,px.y));",
+        "  float zl2 = lin(vUv + vec2(-px.x,-px.y)), zr2 = lin(vUv + vec2(px.x,px.y)), zd2 = lin(vUv + vec2(px.x,-px.y)), zu2 = lin(vUv + vec2(-px.x,px.y));",
+        "  float lap = abs(zl + zr - 2.0*z) + abs(zd + zu - 2.0*z) + .5*(abs(zl2 + zr2 - 2.0*z) + abs(zd2 + zu2 - 2.0*z));",
+        "  float zmin = min(z, min(min(zl,zr), min(zd,zu)));",
+        "  float e = smoothstep(.035, .085, lap / zmin);",                      // relative jump in depth
+        "  e *= 1.0 - smoothstep(14.0, 42.0, zmin);",                          // fade lines into the haze
+        "  float l = pow(max(dot(c, vec3(.299,.587,.114)), 0.0), 1.0/2.2);",
+        "  vec2 fc = gl_FragCoord.xy / max(uThick, 1.0);",
+        "  float h1 = 1.0 - smoothstep(.45, 1.05, abs(fract((fc.x + fc.y) / 5.0) - .5) * 5.0);",
+        "  float h2 = 1.0 - smoothstep(.45, 1.05, abs(fract((fc.x - fc.y) / 5.0) - .5) * 5.0);",
+        "  float hat = h1 * (1.0 - smoothstep(.16, .3, l)) * .42 + h2 * (1.0 - smoothstep(.07, .16, l)) * .38;",
+        "  c *= 1.0 - hat * uHatch * (1.0 - smoothstep(10.0, 30.0, z));",
+        "  c = mix(c, vec3(.02,.014,.01), e * uInk * .92);",
+        "  gl_FragColor = vec4(c, col.a);",
+        "}"].join("\n") });
+    this.fsQuad = new THREE.FullScreenQuad(this.material);
+  }
+  render(renderer, writeBuffer, readBuffer){
+    this.uniforms.tDiffuse.value = readBuffer.texture;
+    this.uniforms.tDepth.value = readBuffer.depthTexture;
+    renderer.setRenderTarget(this.renderToScreen ? null : writeBuffer);
+    this.fsQuad.render(renderer);
+  }
+}
+const inkPass = new InkPass();
+// very old WebGL1 devices without depth textures simply skip the ink pass (toon shading and the
+// character outlines still apply)
+const INK_OK = renderer.capabilities.isWebGL2 || renderer.extensions.has("WEBGL_depth_texture");
+inkPass.enabled = INK_OK;
+function attachDepth(){
+  if (!INK_OK) return;
+  [composer.renderTarget1, composer.renderTarget2].forEach(rt=>{
+    if (rt.depthTexture && rt.depthTexture.image.width === rt.width && rt.depthTexture.image.height === rt.height) return;
+    if (rt.depthTexture) rt.depthTexture.dispose();
+    const dt = new THREE.DepthTexture(rt.width, rt.height); dt.type = THREE.UnsignedIntType;
+    rt.depthTexture = dt; rt.depthBuffer = true; rt.dispose();
+  });
+  inkPass.uniforms.uRes.value.set(composer.renderTarget1.width, composer.renderTarget1.height);
+  inkPass.uniforms.uThick.value = Math.max(1, renderer.getPixelRatio() * .95);
+}
+composer.addPass(renderPassP); composer.addPass(inkPass); composer.addPass(bokehPass);
 composer.addPass(bloomPass); composer.addPass(gammaPass); composer.addPass(gradePass);
 function applyGfx(){
   LOWGFX = gfxLight();
@@ -709,6 +932,7 @@ function resize3d(){
   renderer.setPixelRatio(Math.min(LOWGFX ? 1.5 : 2, window.devicePixelRatio||1));
   renderer.setSize(Math.max(2, r.width), Math.max(2, r.height), false);
   composer.setSize(Math.max(2, r.width), Math.max(2, r.height));
+  attachDepth();
   camera.aspect = r.width/Math.max(1, r.height); camera.updateProjectionMatrix();
   gradePass.uniforms.uAspect.value = camera.aspect;
 }
@@ -806,11 +1030,18 @@ function buildWalker(col, seed){
 }
 
 // --- character factory: stylized figures with expressive drawn faces ---
+// bi: outer brow end, bo: brow arch, bn: inner brow end (defaults to .4*bo), mc: mouth curve,
+// eo: eye openness, mo: mouth shape ("o" open round, "smirk" lopsided), mw: mouth width
 const FACEMOODS = {
-  calm:   {bi:0,  bo:-6, mc:8},
-  smile:  {bi:-2, bo:-9, mc:18},
-  concern:{bi:-12,bo:2,  mc:-9},
-  stern:  {bi:4,  bo:-4, mc:0}
+  calm:     {bi:0,  bo:-6,  mc:8},
+  smile:    {bi:-2, bo:-9,  mc:18},
+  concern:  {bi:-12,bo:2,   mc:-9},
+  stern:    {bi:4,  bo:-4,  mc:0},
+  angry:    {bi:-7, bo:5,   bn:10, mc:-7, eo:.82, mw:.85},
+  sad:      {bi:7,  bo:-3,  bn:-9, mc:-11, eo:.86},
+  surprised:{bi:-13,bo:-17, bn:-12, mc:0, eo:1.32, mo:"o"},
+  afraid:   {bi:-5, bo:-9,  bn:-13, mc:-6, eo:1.22, mw:.8},
+  smirk:    {bi:-3, bo:-7,  mc:10, mo:"smirk"}
 };
 const HAIRLINES = {vera:"bangs", sarah:"swept", david:"high", assessor:"slick", worker:"slick"};
 function drawFace(c,cfg,mood,style,open,lid,sacX,sacY){
@@ -839,7 +1070,8 @@ function drawFace(c,cfg,mood,style,open,lid,sacX,sacY){
   const ch=c.createRadialGradient(128,232,4,128,232,46); ch.addColorStop(0,"rgba(40,20,30,.14)"); ch.addColorStop(1,"rgba(40,20,30,0)");
   c.fillStyle=ch; c.fillRect(80,190,96,66);
   // eyes: smaller whites, iris fills more of the eye, upper lash line and lid crease
-  const eye=(x)=>{ c.save(); c.beginPath(); c.ellipse(x,139,14,8.6,0,0,7); c.clip();
+  const eo = m.eo || 1;
+  const eye=(x)=>{ c.save(); c.beginPath(); c.ellipse(x,139,14,8.6*eo,0,0,7); c.clip();
     c.fillStyle="#E4DDD0"; c.fillRect(x-16,128,32,22);
     c.fillStyle=cfg.eye; c.beginPath(); c.arc(x+sacX,139.5+sacY,7.4,0,7); c.fill();
     c.fillStyle="#120E0A"; c.beginPath(); c.arc(x+sacX,139.5+sacY,3.3,0,7); c.fill();
@@ -848,26 +1080,34 @@ function drawFace(c,cfg,mood,style,open,lid,sacX,sacY){
     if(lid>0.02){ c.fillStyle=cfg.skin; c.fillRect(x-16,129,32,21*Math.min(1,lid)); }
     c.restore();
     c.strokeStyle="rgba(26,18,16,.85)"; c.lineWidth=2.6; c.lineCap="round";
-    c.beginPath(); c.ellipse(x,139+Math.min(1,lid)*7,14.4,8.8*(1-Math.min(1,lid)*.9),0,Math.PI*1.06,Math.PI*1.94); c.stroke();
+    c.beginPath(); c.ellipse(x,139+Math.min(1,lid)*7,14.4,8.8*eo*(1-Math.min(1,lid)*.9),0,Math.PI*1.06,Math.PI*1.94); c.stroke();
     c.strokeStyle="rgba(80,50,45,.28)"; c.lineWidth=1.6;
     c.beginPath(); c.ellipse(x,137,15,11.5,0,Math.PI*1.15,Math.PI*1.85); c.stroke(); };
   eye(92); eye(164);
   // brows
   c.strokeStyle=cfg.hairC; c.lineWidth=4.6; c.lineCap="round"; c.globalAlpha=.85;
-  c.beginPath(); c.moveTo(72,116+m.bi); c.quadraticCurveTo(92,108+m.bo,110,113+m.bo*0.4); c.stroke();
-  c.beginPath(); c.moveTo(184,116+m.bi); c.quadraticCurveTo(164,108+m.bo,146,113+m.bo*0.4); c.stroke();
+  const bn = m.bn !== undefined ? m.bn : m.bo*0.4;
+  c.beginPath(); c.moveTo(72,116+m.bi); c.quadraticCurveTo(92,108+m.bo,110,113+bn); c.stroke();
+  c.beginPath(); c.moveTo(184,116+m.bi); c.quadraticCurveTo(164,108+m.bo,146,113+bn); c.stroke();
   c.globalAlpha=1;
   // nose + mouth (open while speaking)
   c.strokeStyle="rgba(60,30,25,.18)"; c.lineWidth=3;
   c.beginPath(); c.moveTo(131,148); c.quadraticCurveTo(135,163,131,172); c.stroke();
   c.fillStyle="rgba(60,30,25,.2)"; c.beginPath(); c.ellipse(128,175,10,3.2,0,0,7); c.fill();
-  if(open){
+  const mw = m.mw || 1;
+  if(m.mo==="o" && !open){                                  // shocked: a small round open mouth
+    c.fillStyle="#4A2822"; c.beginPath(); c.ellipse(128,200,7.5,9,0,0,7); c.fill();
+    c.strokeStyle="#7A4038"; c.lineWidth=2.4; c.stroke();
+  } else if(open){
     c.fillStyle="#5A322A"; c.beginPath();
-    c.ellipse(128,199,13,7+Math.max(0,m.mc*0.3),0,0,7); c.fill();
-    c.fillStyle="rgba(255,255,255,.85)"; c.fillRect(119,192,18,3);
+    c.ellipse(128,199,13*mw,(m.mo==="o"?11:7)+Math.max(0,m.mc*0.3),0,0,7); c.fill();
+    c.fillStyle="rgba(255,255,255,.85)"; c.fillRect(128-9*mw,192,18*mw,3);
+  } else if(m.mo==="smirk"){
+    c.strokeStyle="#7A4038"; c.lineWidth=4;
+    c.beginPath(); c.moveTo(110,198); c.quadraticCurveTo(130,200,148,189); c.stroke();
   } else {
     c.strokeStyle="#7A4038"; c.lineWidth=4;
-    c.beginPath(); c.moveTo(108,196); c.quadraticCurveTo(128,196+m.mc,148,196); c.stroke();
+    c.beginPath(); c.moveTo(128-20*mw,196); c.quadraticCurveTo(128,196+m.mc,128+20*mw,196); c.stroke();
     c.fillStyle="rgba(150,80,70,.32)"; c.beginPath(); c.ellipse(128,201+m.mc*.35,11,3.6,0,0,7); c.fill();
   }
   if(cfg.extra){ c.strokeStyle="rgba(120,80,60,.7)"; c.lineWidth=4;
@@ -1020,9 +1260,29 @@ function blobTex(){ return BLOB || (BLOB = canvasTex(128,128,(c,w,h)=>{
   c.fillStyle=g; c.fillRect(0,0,w,h); })); }
 
 // --- mesh builder: tubes through rings, each ring carrying bone weights, merged into one geometry ---
-function MeshBuilder(){ this.p=[]; this.c=[]; this.si=[]; this.sw=[]; this.ix=[]; }
+// average each vertex normal with its mesh neighbours: removes the faceted light patches that the
+// sparse tube rings produce under toon shading, without adding geometry
+function smoothNormals(g, passes){
+  const n = g.attributes.normal, ix = g.index.array, cnt = n.count;
+  let cur = Float32Array.from(n.array);
+  for (let p=0;p<passes;p++){
+    const acc = Float32Array.from(cur);
+    for (let i=0;i<ix.length;i+=3){
+      const a = ix[i], b = ix[i+1], c = ix[i+2];
+      for (const [u,v] of [[a,b],[b,c],[c,a]]){
+        acc[u*3]+=cur[v*3]; acc[u*3+1]+=cur[v*3+1]; acc[u*3+2]+=cur[v*3+2];
+        acc[v*3]+=cur[u*3]; acc[v*3+1]+=cur[u*3+1]; acc[v*3+2]+=cur[u*3+2];
+      }
+    }
+    for (let i=0;i<cnt;i++){ const x=acc[i*3], y=acc[i*3+1], z=acc[i*3+2], l=Math.hypot(x,y,z)||1;
+      acc[i*3]=x/l; acc[i*3+1]=y/l; acc[i*3+2]=z/l; }
+    cur = acc;
+  }
+  n.array.set(cur); n.needsUpdate = true;
+}
+function MeshBuilder(){ this.p=[]; this.c=[]; this.si=[]; this.sw=[]; this.ix=[]; this.ow=[]; this.curOw=.004; }
 MeshBuilder.prototype.pushV = function(x,y,z,col,w){
-  this.p.push(x,y,z); this.c.push(col.r,col.g,col.b);
+  this.p.push(x,y,z); this.c.push(col.r,col.g,col.b); this.ow.push(this.curOw);
   const ww = (w||[[0,1]]).slice(0,4); let s = 0; ww.forEach(q=>s+=q[1]);
   for (let k=0;k<4;k++){ const q = ww[k]; this.si.push(q ? q[0] : 0); this.sw.push(q ? q[1]/s : 0); }
 };
@@ -1035,6 +1295,7 @@ MeshBuilder.prototype.tube = function(rings, seg, colorFn, capA, capB){
     d.set(b[0]-a[0], b[1]-a[1], b[2]-a[2]).normalize();
     if (Math.abs(d.z) < .9) ref.set(0,0,1); else ref.set(0,1,0);
     u.crossVectors(d, ref).normalize(); v.crossVectors(u, d).normalize();
+    this.curOw = Math.min(.0042, Math.min(r.rx, r.rz)*.24);
     for (let j=0;j<seg;j++){
       const t = j/seg*Math.PI*2, cu = Math.cos(t)*r.rx, cv = Math.sin(t)*r.rz;
       const x = r.p[0]+u.x*cu+v.x*cv, y = r.p[1]+u.y*cu+v.y*cv, z = r.p[2]+u.z*cu+v.z*cv;
@@ -1045,7 +1306,7 @@ MeshBuilder.prototype.tube = function(rings, seg, colorFn, capA, capB){
     const a = base+i*seg+j, b = base+i*seg+(j+1)%seg, c = base+(i+1)*seg+j, e = base+(i+1)*seg+(j+1)%seg;
     this.ix.push(a,c,b, b,c,e);
   }
-  const cap = (ri, start)=>{ const r = rings[ri], ci = this.p.length/3;
+  const cap = (ri, start)=>{ const r = rings[ri], ci = this.p.length/3; this.curOw = Math.min(.0042, Math.min(r.rx, r.rz)*.24);
     this.pushV(r.p[0],r.p[1],r.p[2],colorFn(r.p[0],r.p[1],r.p[2]),r.w);
     for (let j=0;j<seg;j++){ const a = base+ri*seg+j, b = base+ri*seg+(j+1)%seg;
       if (start) this.ix.push(ci,a,b); else this.ix.push(ci,b,a); } };
@@ -1055,9 +1316,12 @@ MeshBuilder.prototype.build = function(skinned){
   const g = new THREE.BufferGeometry();
   g.setAttribute("position", new THREE.Float32BufferAttribute(this.p,3));
   g.setAttribute("color", new THREE.Float32BufferAttribute(this.c,3));
+  g.setAttribute("olw", new THREE.Float32BufferAttribute(this.ow,1));
   if (skinned){ g.setAttribute("skinIndex", new THREE.Uint16BufferAttribute(this.si,4));
     g.setAttribute("skinWeight", new THREE.Float32BufferAttribute(this.sw,4)); }
-  g.setIndex(this.ix); g.computeVertexNormals(); return g;
+  g.setIndex(this.ix); g.computeVertexNormals();
+  if (skinned) smoothNormals(g, 2);
+  return g;
 };
 
 // --- sculpted head: a sphere pushed and pulled into a face; UVs stay the sphere's own ---
@@ -1067,6 +1331,7 @@ function sculptHead(seg, crownTl){
   const geo = new THREE.SphereGeometry(HEAD_R, seg, Math.round(seg*.75));
   const p = geo.attributes.position, G = (a,b,a0,b0,sa,sb)=>Math.exp(-(((a-a0)/sa)**2)-(((b-b0)/sb)**2));
   const h0 = crownTl ? Math.PI*crownTl - .1 : -1;
+  const sm = [];
   for (let i=0;i<p.count;i++){
     const nx = p.getX(i)/HEAD_R, ny = p.getY(i)/HEAD_R, nz = p.getZ(i)/HEAD_R;
     const yaw = Math.atan2(nx, nz), pitch = Math.asin(Math.max(-1,Math.min(1,ny))), th = Math.acos(Math.max(-1,Math.min(1,ny)));
@@ -1090,8 +1355,20 @@ function sculptHead(seg, crownTl){
     if (ny < 0){ const k = Math.pow(-ny, 1.5); x *= 1 - .34*k; z *= 1 - .1*k; }          // jaw taper toward a V
     if (ny < -.2 && nz > 0){ const k = Math.min(1, (-ny-.2)/.5) * Math.pow(nz, 4); z += .012*k*Math.exp(-((yaw/.3)**2)); } // chin juts forward
     p.setXYZ(i, x, y, z);
+    sm.push(nx/HEAD_S[0], ny/HEAD_S[1] * (1 - .15*Math.max(0, -ny)), nz/HEAD_S[2]);   // continuous: no kink at eye level
   }
-  geo.computeVertexNormals(); return geo;
+  geo.computeVertexNormals();
+  // cel shading reads best on soft normals: blend the sculpted normals toward the plain ellipsoid so the
+  // light/shadow line is one clean curve instead of breaking up over the nose and cheek bumps
+  // shade with the normal of the ellipsoid through each final vertex: the silhouette keeps the sculpted
+  // nose, brow and jaw, while the light falls in one clean soft shape (any share of the sculpted
+  // normals brought back a bright strip down the nose under the toon steps)
+  const nr = geo.attributes.normal, v = new THREE.Vector3();
+  for (let i=0;i<nr.count;i++){
+    v.set(p.getX(i)/(HEAD_S[0]*HEAD_S[0]), p.getY(i)/(HEAD_S[1]*HEAD_S[1]), p.getZ(i)/(HEAD_S[2]*HEAD_S[2])).normalize();
+    nr.setXYZ(i, v.x, v.y, v.z);
+  }
+  return geo;
 }
 // face texture placement on the head's UV map (same angular window drawFace was authored for)
 const FACE_U0 = .25 - .155, FACE_UW = .31, FACE_V0 = .2 - .04/Math.PI, FACE_VH = .6;
@@ -1191,7 +1468,7 @@ function hairTexture(st, col, W, seed){
 function buildChar(id){
   const cfg = CHARS[id] || CHARS.worker, bd = BODY[id] || BODY.worker, fit = outfit(id, cfg);
   const LQ = LOWGFX, g = new THREE.Group(), mats = [];
-  const reg=(m,c)=>{ m.userData.base = (c||m.color).clone(); if (m.emissive) m.userData.emi = m.emissive.clone(); mats.push(m); return m; };
+  const reg=(m0,c)=>{ const m = toonMat(m0, true); m.userData.base = (c||m.color).clone(); if (m.emissive) m.userData.emi = m.emissive.clone(); mats.push(m); return m; };
   const SKIN_K = .84, skinC = C3(cfg.skin).multiplyScalar(SKIN_K);
   const root = new THREE.Group(); root.scale.setScalar(bd.h); g.add(root);
   // bone rig: same names and offsets the clips were authored for
@@ -1304,6 +1581,10 @@ function buildChar(id){
   body.frustumCulled = false; root.add(body);
   g.updateMatrixWorld(true);
   body.bind(new THREE.Skeleton(list));
+  // ink outline: an inverted hull that shares the skeleton, so it follows every pose
+  const olBody = reg(outlineMat(.004)); olBody.defines = {USE_OLW:""};
+  const outline = new THREE.SkinnedMesh(body.geometry, olBody); outline.frustumCulled = false;
+  root.add(outline); outline.bind(body.skeleton, body.bindMatrix);
 
   // head
   const hs = new THREE.Group(); hs.scale.setScalar(.9); hg.add(hs);
@@ -1314,9 +1595,10 @@ function buildChar(id){
   const fctx = fcv.getContext("2d");
   const htex = new THREE.CanvasTexture(hcv); htex.anisotropy = 4;
   // warm emissive lift through the same face map: keeps the shadow side of the face skin-toned instead of grey
-  const headMat = reg(new THREE.MeshStandardMaterial({map:htex, emissiveMap:htex, emissive:new THREE.Color(.16,.11,.09), roughness:.72, metalness:0, transparent:true, color:new THREE.Color(SKIN_K,SKIN_K,SKIN_K)}));
+  const headMat = reg(new THREE.MeshStandardMaterial({map:htex, emissiveMap:htex, emissive:new THREE.Color(.05,.034,.028), roughness:.72, metalness:0, transparent:true, color:new THREE.Color(SKIN_K,SKIN_K,SKIN_K)}));
   const head = new THREE.Mesh(sculptHead(LQ ? 40 : 56, 0), headMat); hs.add(head);
-  const skinM = reg(new THREE.MeshStandardMaterial({color:skinC, emissive:C3(cfg.skin).multiply(new THREE.Color(.16,.11,.09)), roughness:.72, transparent:true}));
+  hs.add(new THREE.Mesh(head.geometry, reg(outlineMat(.0042))));
+  const skinM = reg(new THREE.MeshStandardMaterial({color:skinC, emissive:C3(cfg.skin).multiply(new THREE.Color(.05,.034,.028)), roughness:.72, transparent:true}));
   const ear=(x)=>{ const e=sph(.03,skinM,x,-.01,-.012); e.scale.set(.42,1,.78); hs.add(e); }; ear(-.15); ear(.15);
   // hair: one shell just outside the head with its coverage painted in the same UV space as the face,
   // so hairlines curve (side part, fringe, temples, sideburns) instead of ending on straight lines
@@ -1350,6 +1632,13 @@ function buildChar(id){
   const blob=new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({map:blobTex(),transparent:true,depthWrite:false,opacity:.7}));
   blob.rotation.x=-Math.PI/2; blob.position.y=.012; blob.scale.set(.95,.7,1); blob.renderOrder=1; g.add(blob);
   g.traverse(o=>{ if(o.isMesh && o!==blob) o.castShadow=true; });
+  // draw order while a character fades in or out (all its materials are transparent then): hair, then
+  // head and face, then body, then the ink hull. The face writes depth first, so the neck and collar
+  // inside the head never show through it as a light strip.
+  hs.traverse(o=>{ if (o.isMesh) o.renderOrder = -1; });
+  hairMesh.renderOrder = -2;
+  hs.children.forEach(o=>{ if (o.isMesh && o.material.side === THREE.BackSide) o.renderOrder = 2; });
+  outline.renderOrder = 2;
   return {group:g, mats, rim, fctx, hctx, htex, cfg, style:HAIRLINES[id]||"short",
     bones, anim:makeAnim(bones), blob, hairShade:hairTex.userData.shade,
     headGrp:hg, armR:uaR, armL:uaL, mood:"calm", _open:false,
@@ -1704,12 +1993,13 @@ function artDirect(name, w){
   key.position.set(C.x+4.2, 4.4, C.z+2.0); key.target.position.set(C.x, .9, C.z);
   key.castShadow = true; setShadowRes(key);
   const sc2 = key.shadow.camera; sc2.left=-4.5; sc2.right=4.5; sc2.top=4; sc2.bottom=-2; sc2.near=.5; sc2.far=14;
-  key.shadow.bias = -0.0006; key.shadow.normalBias = 0.02;
+  key.shadow.bias = -0.0008; key.shadow.normalBias = 0.045;   // no acne on the cel bands
   const fill = new THREE.DirectionalLight(P.fill[0], P.fill[1] * 1.2);
   fill.position.set(C.x-3.2, 1.8, C.z+2.6); fill.target.position.set(C.x, 1.2, C.z);
   const rim = new THREE.DirectionalLight(P.rim[0], P.rim[1] * 1.2);
   rim.position.set(C.x-1.2, 3.6, C.z-4.5); rim.target.position.set(C.x, 1.3, C.z);
   sc.add(key, key.target, fill, fill.target, rim, rim.target);
+  toonify(sc);
   w.key = key;
   return w;
 }
@@ -1745,6 +2035,7 @@ function renderLoop(nowMs){
   const t = RM ? 0 : nowMs/1000;
   if (world.update) world.update(t);
   updateCast3d(t, dt);
+  updateShoulder(t, dt);
   // director camera: hard cut on shot change, slow push-in within a shot
   curShot.time += dt;
   const sg = shotGoal();
@@ -1944,7 +2235,7 @@ function updateCast3d(t, dt){
     g.position.x += (tx - g.position.x) * fMove;
     g.position.z += (a.z - g.position.z) * fMove;
     rec.alpha += ((rec.exiting ? 0 : 1) - rec.alpha) * fFade;
-    ch.setAlpha(rec.alpha);
+    ch.setAlpha(!rec.exiting && rec.alpha > .97 ? 1 : rec.alpha);
     if (rec.exiting && rec.alpha < 0.03){ removeRec(id); return; }
     g.rotation.y = Math.atan2(camera.position.x - g.position.x, camera.position.z - g.position.z);
     const ph = id.charCodeAt(0);
@@ -2019,6 +2310,7 @@ let castOrder = [];
 let curShot = { name:"wide", actor:null, time:0 };
 let goalFov = 38;
 function setShot(name, actor){
+  stage.classList.toggle("tight", name === "cu");
   if (curShot.name === name && curShot.actor === actor) return;
   curShot = { name, actor: actor||null, time: 0 };
   snapCam = true; // hard cut
@@ -2033,30 +2325,79 @@ function shotGoal(){
   const bId = castOrder.find(x=>x!==aId && castMap[x]);
   const A = aId ? actorHead(aId) : null;
   const B = bId ? actorHead(bId) : null;
+  const portrait = (camera.aspect || 1.6) < 1;
   let name = curShot.name;
   if (!A) name = "wide";
-  if (name === "osh" && !B) name = "cu";
+  shoulderShow(false);
   switch(name){
     case "cu": {
       const p = castMap[aId].ch.group.position;
-      return { pos:new THREE.Vector3(p.x*0.45, 1.62, p.z+1.5),
-               look:new THREE.Vector3(p.x*0.85, 1.38, p.z), fov:30 };
+      // portrait screens centre the face; landscape keeps it on its third. Look point sits below the
+      // eyes so the face lands in the upper half, clear of subtitles and the choice bar.
+      return portrait
+        ? { pos:new THREE.Vector3(p.x*.8, 1.6, p.z+1.55), look:new THREE.Vector3(p.x*.98, 1.36, p.z), fov:30 }
+        : { pos:new THREE.Vector3(p.x*.45, 1.62, p.z+1.5), look:new THREE.Vector3(p.x*.85, 1.38, p.z), fov:30 };
     }
     case "osh": {
-      const dir = A.clone().sub(B); dir.y = 0; dir.normalize();
-      const perp = new THREE.Vector3(-dir.z, 0, dir.x);
-      const pos = B.clone().addScaledVector(dir, -0.55).addScaledVector(perp, 0.42);
-      pos.y = 1.66;
-      return { pos, look:A.clone(), fov:33 };
+      if (B){
+        const dir = A.clone().sub(B); dir.y = 0; dir.normalize();
+        const perp = new THREE.Vector3(-dir.z, 0, dir.x);
+        const pos = B.clone().addScaledVector(dir, -0.55).addScaledVector(perp, 0.42);
+        pos.y = 1.66;
+        return { pos, look:A.clone(), fov:33 };
+      }
+      // over Marcus's shoulder: the player character stands in the foreground, facing the speaker
+      if (castMap.marcus) return { pos:new THREE.Vector3(A.x*.45, 1.62, A.z+1.5), look:new THREE.Vector3(A.x*.85, 1.38, A.z), fov:30 };
+      const ga = castMap[aId].ch.group.position;
+      const toCam = world.cam.pos.clone().sub(ga); toCam.y = 0; toCam.normalize();
+      const mp = ga.clone().addScaledVector(toCam, 1.45); mp.y = 0;
+      const dir = ga.clone().sub(mp); dir.y = 0; dir.normalize();
+      const side = ga.x >= 0 ? -1 : 1;                       // camera on the open side of the set
+      const perp = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(side);
+      const sh = shoulderShow(true, mp, Math.atan2(dir.x, dir.z));
+      const pos = mp.clone().addScaledVector(dir, portrait ? -0.75 : -0.95).addScaledVector(perp, portrait ? .32 : .58); pos.y = 1.76;
+      const look = A.clone().addScaledVector(perp, portrait ? .02 : -.12); look.y -= .1;
+      return { pos, look, fov: portrait ? 34 : 31 };
     }
     case "two": {
       const mid = B ? A.clone().add(B).multiplyScalar(0.5) : A.clone();
-      return { pos:new THREE.Vector3(mid.x*0.4, 1.58, mid.z+2.7),
-               look:new THREE.Vector3(mid.x, 1.36, mid.z), fov:36 };
+      return { pos:new THREE.Vector3(mid.x*(portrait ? .75 : .4), 1.58, mid.z+2.7),
+               look:new THREE.Vector3(mid.x*(portrait ? .95 : 1), 1.3, mid.z), fov:36 };
     }
-    default:
-      return { pos:world.cam.pos.clone(), look:world.cam.look.clone(), fov:38 };
+    default: {
+      // establishing shot: the set's own camera, swung toward where the cast will stand so the
+      // speaker is always in frame (hard on narrow portrait screens, gentle in landscape)
+      const pos = world.cam.pos.clone(), look = world.cam.look.clone();
+      const ids = castOrder.filter(id=>castMap[id] && !castMap[id].exiting);
+      if (ids.length){
+        let cx = 0; ids.forEach(id=>{ const a = world.anchors[castMap[id].pos] || V3(0,0,.6); cx += a.x; }); cx /= ids.length;
+        const k = portrait ? .92 : .35;
+        const dx = (cx - look.x) * k; look.x += dx; pos.x += dx * (portrait ? .7 : .5);
+      }
+      return { pos, look, fov:38 };
+    }
   }
+}
+// Marcus, seen from behind, for over-the-shoulder shots. Built once, never spoken for, no rim light
+// (adding or hiding lights would force every material to recompile).
+let shoulder = null;
+function shoulderShow(on, at, yaw){
+  if (!on){ if (shoulder) shoulder.ch.group.visible = false; return null; }
+  if (!shoulder){
+    const ch = buildChar("marcus"); ch.group.remove(ch.rim); ch.rim.intensity = 0;
+    ch.setMood("calm"); ch.setAlpha(1); ch.blob.visible = false;
+    shoulder = {ch};
+  }
+  const g = shoulder.ch.group;
+  if (g.parent !== world.scene){ if (g.parent) g.parent.remove(g); world.scene.add(g); }
+  g.visible = true; g.position.copy(at); g.rotation.y = yaw;
+  return shoulder;
+}
+function updateShoulder(t, dt){
+  if (!shoulder || !shoulder.ch.group.visible) return;
+  const ch = shoulder.ch; ch.anim.update(dt);
+  ch.bones.chest.rotation.x += Math.sin(t*1.7)*0.02 + 0.012;
+  ch.bones.head.rotation.x += .06;                 // eyes on the person in front of him
 }
 const DIR = {}; // node -> {shot,actor,clip,emotion} or per-page array; filled after STORY
 function speakerActor(spk){
@@ -2067,21 +2408,73 @@ function speakerActor(spk){
   }
   return null;
 }
+// tone of a line, read from its own punctuation and wording (drives faces, gestures and the close-up)
+function lineTone(t){
+  const x = (t||"").toLowerCase();
+  if (/\b(get out|stop|enough|liar|how dare|don't you)\b/.test(x) && x.includes("!")) return "angry";
+  if (/\b(sorry|afraid|scared|please|run|hide)\b/.test(x)) return "afraid";
+  if (/\b(dead|died|gone|taken|lost|alone|miss|grief|cry|tears)\b/.test(x)) return "sad";
+  if (/!/.test(x) && /\b(what|how|you saw|wait|no)\b/.test(x)) return "surprised";
+  if (/\b(smil|laugh|grin|ha\b|good morning|morning,)/.test(x)) return "smile";
+  return null;
+}
+// narration that describes the person on screen ("she smiles", "his jaw tightens") sets their face
+function narrTone(t){
+  const x = (t||"").toLowerCase();
+  if (/\b(smiles?|smiling|grins?|laughs?)\b/.test(x)) return "smile";
+  if (/\b(frowns?|glares?|scowls?|jaw tightens|snaps)\b/.test(x)) return "angry";
+  if (/\b(flinch|flinches|startle|freezes|blinks)\b/.test(x)) return "surprised";
+  if (/\b(tears?|sobs?|crying|voice breaks|quietly)\b/.test(x)) return "sad";
+  return null;
+}
+const TONE_CLIP = {angry:"point", surprised:"surprised", sad:"shake", afraid:"shrug", smile:"nod"};
+let lastDirBg = null, sceneLine = 0, pendingReact = null;
+// how the person in front of you takes your choice, from what the choice changed
+function reactionFor(o, timedOut){
+  const f = o.fx || {};
+  const rel = (f.trust||0) + (f.vera||0);
+  if (rel >= 2) return {mood:"smile", clip:"nod"};
+  if (rel > 0) return {mood:"calm", clip:"nod"};
+  if (rel <= -2) return {mood:"angry", clip:"shake"};
+  if (rel < 0) return {mood:"stern", clip:"shake"};
+  if (o.silent || timedOut) return {mood:"concern", clip:null};
+  if (f.defiance) return {mood:"surprised", clip:"surprised"};
+  if (f.compliance >= 2) return {mood:"smirk", clip:"nod"};
+  return null;
+}
 function applyDirection(nodeId, pageIdx, spk){
   let d = DIR[nodeId];
   if (Array.isArray(d)) d = d[Math.min(pageIdx, d.length-1)];
   const spkA = speakerActor(spk);
+  const n = STORY[nodeId], text = n && n.text ? String(n.text[pageIdx]||"") : "";
+  const newLoc = lastDirBg !== curBg; lastDirBg = curBg;
+  sceneLine = newLoc ? 0 : sceneLine + 1;
+  const tone = spkA ? lineTone(text) : narrTone(text);
   let shot = d && d.shot, actor = (d && d.actor) || null;
   if (!shot){
-    if (CLOSEUPS[nodeId]){ shot = "cu"; actor = CLOSEUPS[nodeId]; }
+    const pages = n && n.text ? n.text.length : 1;
+    if (newLoc) shot = "wide";                                              // establishing shot on arrival
+    else if (CLOSEUPS[nodeId]) shot = (pages > 1 && pageIdx === 0) ? "osh" : "cu";
     else if (spkA){
-      shot = castOrder.length > 1 ? (pageIdx % 2 ? "osh" : "two")
-                                  : (pageIdx % 2 ? "cu" : "two");
-    } else shot = "wide";
+      if (tone === "angry" || tone === "surprised" || tone === "afraid") shot = "cu";
+      else shot = (castOrder.length > 1 ? ["osh","two","cu","osh"] : ["osh","cu","two"])[sceneLine % (castOrder.length > 1 ? 4 : 3)];
+    } else if (castOrder.length) shot = tone ? "cu" : (sceneLine % 2 ? "two" : "wide");
+    else shot = "wide";
   }
   if (!actor) actor = spkA || castOrder[0] || null;
   setShot(shot, actor);
+  // faces: explicit direction first, then the line's own tone, then the reaction to your last choice
+  const who = spkA || (tone ? castOrder[0] : null);
   if (d && d.emotion && spkA && castMap[spkA]) castMap[spkA].ch.setMood(d.emotion);
+  else if (tone && who && castMap[who]) castMap[who].ch.setMood(tone);
+  if (pageIdx === 0 && pendingReact && castOrder[0] && castMap[castOrder[0]]){
+    const r = pendingReact, rec = castMap[castOrder[0]];
+    if (!(d && d.emotion) && !tone) rec.ch.setMood(r.mood);
+    if (r.clip && !(d && d.clip) && rec.id !== spkA) setTimeout(()=>{ if (castMap[rec.id] === rec) rec.ch.anim.play(r.clip, .25); }, 250);
+    else if (r.clip && !(d && d.clip) && rec.id === spkA) d = Object.assign({}, d||{}, {clip:r.clip});
+  }
+  pendingReact = null;
+  if (tone && !(d && d.clip) && spkA && TONE_CLIP[tone]) d = Object.assign({}, d||{}, {clip:TONE_CLIP[tone]});
   return d;
 }
 
@@ -2142,8 +2535,10 @@ function renderPage(){
   speakerEl.textContent = spk ? spk.toUpperCase() : "";
   speakerEl.className = spk ? (spk.toLowerCase().includes("vera") ? "vera" :
                          spk.toLowerCase().includes("sarah") ? "sarah" :
-                         spk.toLowerCase().includes("engine")||spk.toLowerCase().includes("system") ? "system" : "narr") : "narr";
+                         spk.toLowerCase().includes("engine")||spk.toLowerCase().includes("system") ? "system" : "named") : "narr";
   highlightCast(spk);
+  stage.classList.remove("choosing");
+  $("scene").classList.toggle("narr", !spk);
   const chunk = n.text[page];
   const plain = chunk.replace(/<[^>]+>/g,"");
   histPush({spk: spk || "", txt: plain});
@@ -2284,10 +2679,11 @@ function renderChoices(n){
     }
     const b = document.createElement("button");
     b.className = "choice" + (o.silent ? " silent" : "");
-    b.innerHTML = "<kbd>" + (++btnIdx) + "</kbd>" + o.t;
-    b.onclick = ()=>pick(o, n);
+    b.innerHTML = "<kbd>" + (++btnIdx) + "</kbd>" + choiceLabel(o);
+    b.onclick = ()=>pick(o, n, false, b);
     choicesEl.appendChild(b);
   });
+  if (choicesEl.children.length) stage.classList.add("choosing");
   if (n.timer && SET.timer !== "off"){
     timerWrap.style.display = "block";
     const secs = n.timer * (SET.timer === "relaxed" ? 2 : 1);
@@ -2299,6 +2695,7 @@ function renderChoices(n){
       const tNow = performance.now(); if (!PAUSED) elapsed += tNow - tPrev; tPrev = tNow;
       const left = Math.max(0, 1 - elapsed/total);
       timerBar.style.width = (left*100) + "%";
+      timerBar.classList.toggle("low", left < .3);
       const sec = Math.ceil(left*secs);
       if (sec !== lastSec){ lastSec = sec; if (sec <= 5 && sec > 0) AU.sfx("tick"); }
       if (left <= 0){
@@ -2309,15 +2706,47 @@ function renderChoices(n){
     }, 90);
   }
 }
-function pick(o, n, timedOut){
+// Telltale shows "say nothing" as an ellipsis; the original line stays underneath as a hint
+const SILENCE_RE = /^\[(Silence\.|Say nothing|Some admissions deserve silence|Let him talk to the wind)/;
+function choiceLabel(o){
+  const t = String(o.t);
+  if (o.silent && SILENCE_RE.test(t)){
+    const plain = /^\[(Silence\.|Say nothing at all\.)\]$/.test(t);
+    return '<span class="dots" aria-label="Say nothing">...</span>' + (plain ? '' : '<small>' + t + '</small>');
+  }
+  return t;
+}
+// relationship feedback, derived only from what the choice already changes
+function rememberFor(o){
+  if (o.remember) return [o.remember];
+  const f = o.fx || {}, out = [];
+  if (f.trust && S.flags.met_sarah) out.push("sarah");
+  if (f.vera && S.flags.met_vera) out.push("vera");
+  if (f.flag === "davidExposed" || f.flag === "chenTaken" || f.flag === "reportedSarah") out.push("system");
+  return out;
+}
+let picking = false;
+function pick(o, n, timedOut, btn){
+  if (picking) return;
+  if (btn && !timedOut && !RM){
+    // a short beat on the selected option before the scene answers, like the Telltale choice flash
+    picking = true; clearTimer();
+    btn.classList.add("picked"); choicesEl.classList.add("locked");
+    setTimeout(()=>{ picking = false; choicesEl.classList.remove("locked"); commitPick(o, n, false); }, 380);
+    return;
+  }
+  commitPick(o, n, timedOut);
+}
+function commitPick(o, n, timedOut){
   clearTimer();
   histPush({pick: timedOut ? "(You stayed silent.)" : String(o.t).replace(/<[^>]+>/g,"")});
   AU.sfx("click");
   if (o.silent || timedOut){ S.silence++; }
+  pendingReact = reactionFor(o, timedOut);
   if (o.fx) fx(o.fx);
   if (o.anom) anomaly(o.anom);
-  if (o.remember) remember(o.remember);
-  if (o.log) logChoice(o.log[0], o.log[1]);
+  rememberFor(o).forEach((w, i)=>setTimeout(()=>remember(w), 250 + i*500));
+  if (o.log) logChoice(o.log[0], o.log[1], o.t);
   if (o.after){ o.after(S); }
   go(nx(o.next));
 }
@@ -2400,15 +2829,72 @@ function clearScene(){
   choicesEl.innerHTML = ""; textEl.innerHTML = ""; speakerEl.textContent = "";
   moreEl.style.display = "none"; clearTimer(); clearType();
   castClear();
-  stage.classList.remove("cine");
+  stage.classList.remove("cine", "choosing", "tight");
   $("hotzone").innerHTML = "";
   $("sqte").style.display = "none";
+}
+// ---------- episode intro: Telltale disclaimer, then "Previously on" built from your own choices ----------
+const EP_WORDS = ["","One","Two","Three","Four","Five"];
+let introToken = 0;
+function episodeIntro(ep, done){
+  const tok = ++introToken, here = cur;
+  const alive = ()=> tok === introToken && cur === here;
+  const steps = [];
+  if (!(ep === 1 && S.flags.discShown)) steps.push(disclaimerStep);
+  const rec = S.log.filter(l=>l.ep >= 1 && l.ep < ep).slice(-4);
+  if (rec.length) steps.push(cb=>recapStep(rec, cb, alive));
+  let i = 0;
+  const next = ()=>{ if (!alive()) return; if (i < steps.length) steps[i++](next, alive); else done(); };
+  next();
+}
+function disclaimerStep(cb, alive){
+  overlay.innerHTML = "";
+  const d = document.createElement("div"); d.className = "card ttdisc";
+  d.innerHTML = '<div class="disc">This game series adapts to the choices you make.<br>The story is tailored by how you play.</div>'+
+    '<button class="mbtn" type="button">Continue</button>';
+  overlay.appendChild(d);
+  let gone = false; const fin = ()=>{ if (gone || !alive()) return; gone = true; cb(); };
+  d.querySelector(".mbtn").onclick = fin;
+  setTimeout(fin, 4800);
+}
+function recapStep(entries, cb, alive){
+  overlay.innerHTML = "";
+  const box = document.createElement("div"); box.className = "recapcap";
+  box.innerHTML = '<div class="rc-head"><small>The Distopia</small>Previously...</div><div class="rc-slot"></div>'+
+    '<button class="mbtn" type="button">Skip recap</button>';
+  overlay.appendChild(box);
+  stage.classList.add("recap", "cine");
+  let i = 0, gone = false, tm = null;
+  const end = ()=>{ if (gone) return; gone = true; clearTimeout(tm); stage.classList.remove("recap");
+    castClear(); if (alive()) cb(); };
+  box.querySelector(".mbtn").onclick = end;
+  const slide = ()=>{
+    if (gone || !alive()) return;
+    if (i >= entries.length){ end(); return; }
+    const e = entries[i++], node = e.node && STORY[e.node];
+    if (node && node.bg){
+      setWorld(node.bg); renderCast(e.node);
+      Object.values(castMap).forEach(r=>{ r.snap = true; });
+      lastDirBg = curBg;
+      setShot(castOrder.length ? "cu" : "wide", castOrder[0] || null);
+    }
+    box.querySelector(".rc-slot").innerHTML = '<div class="rc-cap"><div class="rc-ep">Episode '+EP_WORDS[e.ep]+'</div>'+
+      '<div class="rc-lbl">'+e.label+'</div>'+(e.said ? '<div class="rc-said">'+e.said+'</div>' : '')+'</div>';
+    tm = setTimeout(slide, 3400);
+  };
+  slide();
 }
 function renderCard(n){
   clearScene();
   overlay.innerHTML = "";
+  const em = /^e([1-5])card$/.exec(cur);
+  if (em && !n._introDone){
+    const node = n;
+    episodeIntro(+em[1], ()=>{ node._introDone = true; renderCard(node); node._introDone = false; });
+    return;
+  }
   const d = document.createElement("div");
-  d.className = "card";
+  d.className = "card" + (em ? " epcard" : "");
   d.innerHTML = n.html(S);
   overlay.appendChild(d);
   d.querySelectorAll("[data-go]").forEach(b=>{
@@ -2416,8 +2902,9 @@ function renderCard(n){
       if (t === "__new"){
         if (loadSave() && !b.classList.contains("confirm")){ b.classList.add("confirm"); b.textContent = "Start over? Tap again"; return; }
         S = DEFAULT_STATE(); HIST.length = 0;
-        if (!SET.seenHelp){ SET.seenHelp = true; saveSettings(); openMenu("help", ()=>go("co1")); return; }
-        go("co1"); }
+        const start = ()=>{ S.flags.discShown = true; disclaimerStep(()=>go("co1"), ()=>cur === "title"); };
+        if (!SET.seenHelp){ SET.seenHelp = true; saveSettings(); openMenu("help", start); return; }
+        start(); }
       else if (t === "__episodes"){ openMenu("episodes"); }
       else if (t === "__help"){ openMenu("help"); }
       else if (t === "__settings"){ openMenu("settings"); }
@@ -2425,32 +2912,26 @@ function renderCard(n){
       else go(t); };
   });
 }
+function choiceRows(entries){
+  return entries.map((e, i)=>'<div class="tc-row"><div class="tc-ix">'+(i+1)+'</div><div><div class="tc-lbl">'+e.label+'</div>'+
+    (e.said ? '<div class="tc-said">'+e.said+'</div>' : '')+'</div></div>').join("");
+}
 function renderStats(n){
   clearScene();
   overlay.innerHTML = "";
   const entries = S.log.filter(l=>l.ep === n.epn);
   const d = document.createElement("div");
-  d.className = "stats";
-  let rows = "";
-  entries.forEach(e=>{
-    const p = cohortPct(e.label);
-    rows += '<div class="srow"><div class="lbl">'+e.label+'</div>'+
-            '<div class="track"><div class="fill" data-w="'+p+'"></div></div>'+
-            '<div class="pct">'+p+'% OF THE 47 SUBJECTS MADE THE SAME CHOICE</div></div>';
-  });
-  if (!entries.length){
-    rows = '<div class="srow"><div class="lbl" style="color:var(--dim)">No decisive actions recorded. The Purpose Engine finds this configuration… interesting.</div></div>';
-  }
-  d.innerHTML = '<div class="eyebrow">Purpose Engine · Cohort Data</div>'+
+  d.className = "stats ttsum";
+  const rows = entries.length ? choiceRows(entries)
+    : '<div class="tc-row"><div><div class="tc-lbl" style="color:var(--dim)">No decisive actions recorded. The Purpose Engine finds this configuration… interesting.</div></div></div>';
+  d.innerHTML = '<div class="eyebrow">Episode '+EP_WORDS[n.epn]+' · Complete</div>'+
     '<h2>'+n.title+'</h2>'+
-    '<div class="note">Episode '+n.epn+' complete · Subject responses compared against archive</div>'+
-    '<div class="statrows">'+rows+'</div>'+
+    '<div class="note">Your choices</div>'+
+    '<div class="tc-list">'+rows+'</div>'+
+    '<div class="tc-note">These are the choices you made. No data from other players is collected, so no comparisons are shown.</div>'+
     '<button class="mbtn" id="statNext">'+(n.nextLabel || "Next Episode")+'</button>';
   overlay.appendChild(d);
   if (!S.unlocked.includes(n.epn+1) && n.epn < 5) S.unlocked.push(n.epn+1);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    d.querySelectorAll(".fill").forEach(f=>f.style.width = f.getAttribute("data-w") + "%");
-  }));
   $("statNext").onclick = ()=>go(n.next);
   save();
 }
@@ -2565,7 +3046,8 @@ function renderMenu(view){
   } else if (view === "help"){
     h = '<h2>How to Play</h2><ul>'+
       '<li><b>Advance:</b> click or tap anywhere, or press <kbd>Space</kbd> / <kbd>Enter</kbd>. The first press finishes the line, the next one continues.</li>'+
-      '<li><b>Choose:</b> click a choice or press <kbd>1</kbd> to <kbd>4</kbd>. When a bar drains under the choices, the choice is timed. If time runs out, Marcus stays silent. Silence is a choice and it counts.</li>'+
+      '<li><b>Choose:</b> click a choice or press <kbd>1</kbd> to <kbd>4</kbd>. When the bar above the choices drains, the choice is timed. If time runs out, Marcus stays silent. <b>...</b> means saying nothing. Silence is a choice and it counts.</li>'+
+      '<li><b>Remember:</b> when a choice changes how someone sees you, a note appears in the top left. At the end of each episode you can review the choices you made.</li>'+
       '<li><b>Explore:</b> glowing rings in a scene are things you can examine. Tap them.</li>'+
       '<li><b>Action moments:</b> follow the prompt. Some ask you to tap rapidly, some to press the arrow shown, and some ask you to do nothing at all.</li>'+
       '<li><b>Attention:</b> the meter at the top shows how closely the system is watching you.</li>'+
@@ -3478,6 +3960,8 @@ function endHTML(title, sub, paras, S){
     '<div class="note">Iteration 848 · Complete</div>'+
     '<div class="statrows">'+paras.map(p=>'<div class="srow"><div class="lbl">'+p+'</div></div>').join("")+
     '<div class="srow" style="margin-top:10px">'+epilogue+stats+'</div></div>'+
+    (S.log.length ? '<div class="note" style="margin-top:34px">Your story</div><div class="tc-list">'+
+      [1,2,3,4,5].map(ep=>{ const es = S.log.filter(l=>l.ep===ep); return es.length ? '<div class="tc-ep">Episode '+EP_WORDS[ep]+'</div>'+choiceRows(es) : ''; }).join("")+'</div>' : '')+
     '<div class="note" style="margin-top:30px">Based on the novel &ldquo;The Distopia: Layers of Truth&rdquo; by Matthew Culwell</div>'+
     '<div class="note" style="margin-top:14px">The story continues in the book. Marcus\'s full journey is in the Dystopia series.</div>'+
     BOOKLINKS+
