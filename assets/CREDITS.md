@@ -87,3 +87,8 @@ Inter and Cormorant Garamond via Google Fonts (SIL Open Font License 1.1).
 UI ticks and ambient beds in `public/assets/audio/` were synthesized for this project with ffmpeg
 (sine tones and filtered noise; no third-party samples). Dedicated to the public domain (CC0).
 Mapped per set: apartment, street, office/conf, cafe, stairwell, tunnels, dream, lab, void.
+
+## Fonts (SIL Open Font License 1.1)
+
+The title screen uses DM Serif Display (Colophon Foundry) and IBM Plex Mono (IBM Corp.), shipped as Latin subsets
+in `public/assets/fonts/`. Both are licensed under the SIL Open Font License 1.1: https://openfontlicense.org
